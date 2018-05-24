@@ -1,0 +1,14 @@
+{
+  "name": "entity-linking-preprocessing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dump_to_mongo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dumpster-dive": "^3.1.0"
+  }
+}

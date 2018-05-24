@@ -1,0 +1,42 @@
+{
+    "Kaapstad": {
+        "entity": "Kaapstad",
+        "mention": "Kaapstad",
+        "sentence": "Die Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik."
+    },
+    "Fort de Goede Hoop": {
+        "entity": "Fort de Goede Hoop",
+        "mention": "Fort de Goede Hoop",
+        "sentence": "In 1652 is 'n tydelike fort, Fort de Goede Hoop, op hierdie terrein opgerig."
+    },
+    "Kasteel die Goeie Hoop": {
+        "entity": "Kasteel die Goeie Hoop",
+        "mention": "Kasteel",
+        "sentence": "Na voltooiing van die Kasteel is die fort in 1624 gesloop, die terrein vir gebruik as 'n paradegrond gelyk gemaak en rondom bome aangeplant."
+    },
+    "Nelson Mandela": {
+        "entity": "Nelson Mandela",
+        "mention": "Nelson Mandela",
+        "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek."
+    },
+    "Suid-Afrika": {
+        "entity": "Suid-Afrika",
+        "mention": "Suid-Afrika",
+        "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek."
+    },
+    "FIFA Sokker-Wêreldbekertoernooi in 2010": {
+        "entity": "FIFA Sokker-Wêreldbekertoernooi in 2010",
+        "mention": "Wêreldbekersokkertoernooi",
+        "sentence": "In 2010 met die Wêreldbekersokkertoernooi was hier byeenkomste van ondersteuners wat die wedstryde op reuseskerms gevolg het."
+    },
+    "Koning Edward VII-standbeeld": {
+        "entity": "Koning Edward VII-standbeeld",
+        "mention": "Koning Edward VII-standbeeld",
+        "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk."
+    },
+    "Tweede Vryheidsoorlog": {
+        "entity": "Tweede Vryheidsoorlog",
+        "mention": "Tweede Vryheidsoorlog",
+        "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk."
+    }
+}
