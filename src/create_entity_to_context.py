@@ -4,13 +4,11 @@ import pydash as _
 
 def process_seed_pages(pages_db, seed_pages, depth=1):
   if depth != 1: raise NotImplementedError('Depth other than 1 not implemented yet')
-  concat = lambda dest, src: dest + src if dest else src
   visited_page_titles = [page['title'] for page in seed_pages]
   processed_pages = [process_page(page) for page in seed_pages]
-  link_contexts = reduce(lambda acc, val: _.objects.merge_with(acc, val, iteratee=concat),
-                         [processed_page['link_contexts'] for processed_page in processed_pages],
-                         {})
-  pages_referenced = list(link_contexts.keys())
+  link_names = sum([list(processed_page['link_contexts'].keys()) for processed_page in processed_pages],
+                   [])
+  pages_referenced = list(link_names)
   for page_title in _.arrays.difference(pages_referenced, visited_page_titles):
     page = pages_db.find_one({'_id': page_title})
     if page:
@@ -47,6 +45,12 @@ def process_page(page):
 
 def save_processed_page(client, processed_page):
   pass
+
+def merge_mentions(processed_pages):
+  concat = lambda dest, src: dest + src if dest else src
+  return reduce(lambda acc, val: _.objects.merge_with(acc, val, iteratee=concat),
+                [processed_page['link_contexts'] for processed_page in processed_pages],
+                {})
 
 def main():
   client = MongoClient()
