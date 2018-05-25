@@ -52,7 +52,8 @@ def get_link_contexts(page):
 
 
 def process_page(page):
-  document_info = {'title': page['title'],
+  document_info = {'id': page['pageID'],
+                   'title': page['title'],
                    'text': page['plaintext'],
                    'categories': page['categories']}
   link_contexts = get_link_contexts(page)
