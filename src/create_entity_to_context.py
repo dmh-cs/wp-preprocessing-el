@@ -53,7 +53,7 @@ def get_link_contexts(page):
 
 def process_page(page):
   document_info = {'title': page['title'],
-                   'desc': page['plaintext'][:100],
+                   'text': page['plaintext'],
                    'categories': page['categories']}
   link_contexts = get_link_contexts(page)
   entity_counts = _.objects.map_values(link_contexts, len)
@@ -61,8 +61,46 @@ def process_page(page):
           'link_contexts': link_contexts,
           'entity_counts': entity_counts}
 
-def save_processed_page(client, processed_page):
+def upsert_category(category):
   pass
+
+def insert_page_category(page_id, category_id):
+  pass
+
+def get_page_id(page_title):
+  pass
+
+def get_category_id(category):
+  pass
+
+def insert_category_association(page_title, category):
+  insert_page_category(get_page_id(page_title),
+                       get_category_id(category))
+
+def insert_category_associations(processed_page):
+  for category in processed_page['categories']:
+    insert_category_association(processed_page['title'], category)
+
+def insert_page(processed_page):
+  pass
+
+def insert_processed_page(client, processed_page):
+  for category in processed_page['categories']:
+    upsert_category(category)
+  insert_page(processed_page)
+  insert_category_associations(processed_page)
+
+def insert_mention(entity, mention):
+  pass
+
+def upsert_entity(entity):
+  pass
+
+def insert_link_contexts(link_contexts):
+  for entity, mentions in link_contexts.iteritems():
+    upsert_entity(entity)
+    for mention in mentions:
+      insert_mention(entity, mention)
 
 def merge_mentions(processed_pages):
   concat = lambda dest, src: dest + src if dest else src
@@ -85,11 +123,9 @@ def main():
   initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
   processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch)
   merged = merge_mentions(processed_pages)
-  print('num pages', len(merged.keys()))
-  pp = pprint.PrettyPrinter(indent=4)
-  pp.pprint(_.objects.map_values(merged, 'entity_counts'))
-  # for processed_page in processed_pages:
-  #   save_processed_page(client, processed_page)
+  for processed_page in processed_pages:
+    insert_processed_page(client, processed_page)
+  insert_link_contexts(merged['link_contexts'])
 
 
 if __name__ == "__main__": main()
