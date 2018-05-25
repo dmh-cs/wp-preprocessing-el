@@ -2,53 +2,62 @@
     "Kaapstad": [
         {
             "mention": "Kaapstad",
-            "sentence": "Die Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik."
+            "sentence": "Die Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
+            "page_title": "Parade"
         }
     ],
     "Fort de Goede Hoop": [
         {
             "mention": "Fort de Goede Hoop",
-            "sentence": "In 1652 is 'n tydelike fort, Fort de Goede Hoop, op hierdie terrein opgerig."
+            "sentence": "In 1652 is 'n tydelike fort, Fort de Goede Hoop, op hierdie terrein opgerig.",
+            "page_title": "Parade"
         }
     ],
     "Kasteel die Goeie Hoop": [
         {
             "mention": "Kasteel",
-            "sentence": "Na voltooiing van die Kasteel is die fort in 1624 gesloop, die terrein vir gebruik as 'n paradegrond gelyk gemaak en rondom bome aangeplant."
+            "sentence": "Na voltooiing van die Kasteel is die fort in 1624 gesloop, die terrein vir gebruik as 'n paradegrond gelyk gemaak en rondom bome aangeplant.",
+            "page_title": "Parade"
         }
     ],
     "Nelson Mandela": [
         {
             "mention": "Nelson Mandela",
-            "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek."
+            "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+            "page_title": "Parade"
         },
         {
             "mention": "Mandela",
-            "sentence": "Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek."
+            "sentence": "Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+            "page_title": "Parade"
         }
     ],
     "Suid-Afrika": [
         {
             "mention": "Suid-Afrika",
-            "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek."
+            "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek.",
+            "page_title": "Parade"
         }
     ],
     "FIFA Sokker-Wêreldbekertoernooi in 2010": [
         {
             "mention": "Wêreldbekersokkertoernooi",
-            "sentence": "In 2010 met die Wêreldbekersokkertoernooi was hier byeenkomste van ondersteuners wat die wedstryde op reuseskerms gevolg het."
+            "sentence": "In 2010 met die Wêreldbekersokkertoernooi was hier byeenkomste van ondersteuners wat die wedstryde op reuseskerms gevolg het.",
+            "page_title": "Parade"
         }
     ],
     "Koning Edward VII-standbeeld": [
         {
             "mention": "Koning Edward VII-standbeeld",
-            "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk."
+            "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
+            "page_title": "Parade"
         }
     ],
     "Tweede Vryheidsoorlog": [
         {
             "mention": "Tweede Vryheidsoorlog",
-            "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk."
+            "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
+            "page_title": "Parade"
         }
     ]
 }
