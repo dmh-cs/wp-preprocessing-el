@@ -23,18 +23,23 @@ def process_seed_pages(pages_db, seed_pages, depth=1):
       processed_pages.append(process_page(page))
   return processed_pages
 
-def sentence_to_link_contexts(page_title, sentence):
+def get_mention_offset(page_text, sentence_text, mention):
+  return page_text.index(sentence_text) + sentence_text.index(mention)
+
+def sentence_to_link_contexts(page, sentence):
+  page_title = page['title']
   contexts = {}
   if sentence.get('links'):
     for link in sentence['links']:
       if link.get('page'):
         contexts[link['page']] = {'mention': link['text'],
                                   'sentence': sentence['text'],
+                                  'offset': get_mention_offset(page['plaintext'], sentence['text'], link['text']),
                                   'page_title': page_title}
   return contexts
 
-def sentence_to_link_contexts_reducer(page_title, contexts_acc, sentence):
-  contexts = sentence_to_link_contexts(page_title, sentence)
+def sentence_to_link_contexts_reducer(page, contexts_acc, sentence):
+  contexts = sentence_to_link_contexts(page, sentence)
   if not _.predicates.is_empty(contexts):
     concat = lambda dest, src: dest + [src] if dest else [src]
     _.objects.merge_with(contexts_acc, contexts, iteratee=concat)
@@ -42,9 +47,8 @@ def sentence_to_link_contexts_reducer(page_title, contexts_acc, sentence):
 
 def get_link_contexts(page):
   sections = page['sections']
-  page_title = page['title']
   sentences = sum([section['sentences'] for section in sections], [])
-  return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page_title), sentences, {})
+  return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), sentences, {})
 
 
 def process_page(page):

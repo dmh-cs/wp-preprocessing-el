@@ -3,6 +3,7 @@
         {
             "mention": "Kaapstad",
             "sentence": "Die Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
+            "offset": 144,
             "page_title": "Parade"
         }
     ],
@@ -10,6 +11,7 @@
         {
             "mention": "Fort de Goede Hoop",
             "sentence": "In 1652 is 'n tydelike fort, Fort de Goede Hoop, op hierdie terrein opgerig.",
+            "offset": 321,
             "page_title": "Parade"
         }
     ],
@@ -17,6 +19,7 @@
         {
             "mention": "Kasteel",
             "sentence": "Na voltooiing van die Kasteel is die fort in 1624 gesloop, die terrein vir gebruik as 'n paradegrond gelyk gemaak en rondom bome aangeplant.",
+            "offset": 391,
             "page_title": "Parade"
         }
     ],
@@ -24,11 +27,13 @@
         {
             "mention": "Nelson Mandela",
             "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+            "offset": 999,
             "page_title": "Parade"
         },
         {
             "mention": "Mandela",
             "sentence": "Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+            "offset": 1006,
             "page_title": "Parade"
         }
     ],
@@ -36,6 +41,7 @@
         {
             "mention": "Suid-Afrika",
             "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek.",
+            "offset": 1194,
             "page_title": "Parade"
         }
     ],
@@ -43,6 +49,7 @@
         {
             "mention": "Wêreldbekersokkertoernooi",
             "sentence": "In 2010 met die Wêreldbekersokkertoernooi was hier byeenkomste van ondersteuners wat die wedstryde op reuseskerms gevolg het.",
+            "offset": 1252,
             "page_title": "Parade"
         }
     ],
@@ -50,6 +57,7 @@
         {
             "mention": "Koning Edward VII-standbeeld",
             "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
+            "offset": 1415,
             "page_title": "Parade"
         }
     ],
@@ -57,6 +65,7 @@
         {
             "mention": "Tweede Vryheidsoorlog",
             "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
+            "offset": 1467,
             "page_title": "Parade"
         }
     ]
