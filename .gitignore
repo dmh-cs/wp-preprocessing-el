@@ -3,5 +3,4 @@ __pycache__
 node_modules
 .cache
 *.xml
-*.sql
 .env
