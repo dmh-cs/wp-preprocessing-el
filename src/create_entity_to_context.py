@@ -17,7 +17,7 @@ def main():
   DATABASE_HOST = os.getenv("DBHOST")
 
   client = MongoClient()
-  dbname = 'afwiki'
+  dbname = 'enwiki'
   print('Reading from mongodb db', dbname)
   db = client[dbname]
   pages_db = db['pages']

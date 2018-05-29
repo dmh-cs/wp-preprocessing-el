@@ -3,10 +3,10 @@ include .env
 up:
 	@echo ''
 	@echo '-------------------'
-	@echo '-- Creating database `el` --'
+	@echo '-- Creating database `$(DBNAME)` --'
 	@echo '-------------------'
 	@echo ''
-	mysql -u"$(DBUSER)" --host "$(DBHOST)" -e "CREATE DATABASE IF NOT EXISTS el"
+	mysql -u"$(DBUSER)" --host "$(DBHOST)" -e "CREATE DATABASE IF NOT EXISTS $(DBNAME)"
 
 	@echo ''
 	@echo '-------------------'
