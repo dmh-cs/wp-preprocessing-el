@@ -1,8 +1,12 @@
-import pprint
 from pymongo import MongoClient
 import pymysql.cursors
 from functools import reduce
 import pydash as _
+from dotenv import load_dotenv
+import os
+from pathlib import Path
+
+from db import insert_wp_page, insert_category_associations, insert_link_contexts
 
 def fetch_disambiguation_pages(pages_db):
   return pages_db.find({"title": {"$regex": "(disambiguation)"}})
@@ -78,45 +82,41 @@ def merge_mentions(processed_pages):
                                                 'entity_counts': entity_counts[key]})
 
 def main():
+  load_dotenv(dotenv_path=Path('../db') / '.env')
+  DATABASE_NAME = os.getenv("DBNAME")
+  DATABASE_USER = os.getenv("DBUSER")
+  DATABASE_PASSWORD = os.getenv("DBPASS")
+  DATABASE_HOST = os.getenv("DBHOST")
+
   client = MongoClient()
   dbname = 'afwiki'
   db = client[dbname]
   pages_db = db['pages']
-  num_seed_pages = 1000
+  num_seed_pages = 10
+  print('Fetching WP pages')
   initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
   processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch)
-  merged = merge_mentions(processed_pages)
+  print('Processing WP pages')
 
-
-  # Connect to the database
-  connection = pymysql.connect(host='localhost',
-                               user='user',
-                               password='passwd',
-                               db='db',
+  connection = pymysql.connect(host=DATABASE_HOST,
+                               user=DATABASE_USER,
+                               password=DATABASE_PASSWORD,
+                               db=DATABASE_NAME,
                                charset='utf8mb4',
                                cursorclass=pymysql.cursors.DictCursor)
-
   try:
-      with connection.cursor() as cursor:
-          # Create a new record
-          sql = "INSERT INTO `users` (`email`, `password`) VALUES (%s, %s)"
-          cursor.execute(sql, ('webmaster@python.org', 'very-secret'))
-
-      # connection is not autocommit by default. So you must commit to save
-      # your changes.
-      connection.commit()
-
-      with connection.cursor() as cursor:
-          # Read a single record
-          sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
-          cursor.execute(sql, ('webmaster@python.org',))
-          result = cursor.fetchone()
-          print(result)
+    with connection.cursor() as cursor:
+      print('Inserting processed pages')
+      source = 'wikipedia'
+      for processed_page in processed_pages:
+        insert_wp_page(cursor, processed_page, source)
+        connection.commit()
+        insert_category_associations(cursor, processed_page, source)
+        connection.commit()
+        insert_link_contexts(cursor, processed_page, source)
+        connection.commit()
   finally:
-      connection.close()
-  for processed_page in processed_pages:
-    insert_processed_wp_page(client, processed_page)
-    insert_link_contexts(cursor, processed_page)
+    connection.close()
 
 
 if __name__ == "__main__": main()
