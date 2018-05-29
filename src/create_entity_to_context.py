@@ -18,6 +18,15 @@ def is_valid_page(page):
   else:
     return False
 
+def is_valid_link(link):
+  flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
+  if link and link.get('text') and link.get('page'):
+    valid_text = not any([_.strings.has_substr(link['text'].lower(), flag) for flag in flags])
+    valid_page = not any([_.strings.has_substr(link['page'].lower(), flag) for flag in flags])
+    return valid_text and valid_page
+  else:
+    return False
+
 def process_seed_pages(pages_db, seed_pages, depth=1):
   if depth != 1: raise NotImplementedError('Depth other than 1 not implemented yet')
   visited_page_titles = [page['title'] for page in seed_pages]
@@ -32,18 +41,30 @@ def process_seed_pages(pages_db, seed_pages, depth=1):
   return processed_pages
 
 def get_mention_offset(page_text, sentence_text, mention):
-  return page_text.index(sentence_text) + sentence_text.index(mention)
+  try:
+    sentence_page_offset = page_text.index(sentence_text)
+  except ValueError:
+    raise ValueError('Sentence not found in page')
+  try:
+    mention_sentence_offset = sentence_text.index(mention)
+  except ValueError:
+    raise ValueError('Mention not found in sentence')
+  return sentence_page_offset + mention_sentence_offset
 
 def sentence_to_link_contexts(page, sentence):
   page_title = page['title']
   contexts = {}
   if sentence.get('links'):
     for link in sentence['links']:
-      if link.get('page'):
-        contexts[link['page']] = {'text': link['text'],
-                                  'sentence': sentence['text'],
-                                  'offset': get_mention_offset(page['plaintext'], sentence['text'], link['text']),
-                                  'page_title': page_title}
+      if link.get('page') and is_valid_link(link):
+        try:
+          mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link['text'])
+          contexts[link['page']] = {'text': link['text'],
+                                    'sentence': sentence['text'],
+                                    'offset': mention_offset,
+                                    'page_title': page_title}
+        except ValueError:
+          continue
   return contexts
 
 def sentence_to_link_contexts_reducer(page, contexts_acc, sentence):
@@ -59,7 +80,7 @@ def get_link_contexts(page):
   return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), sentences, {})
 
 def process_page(page):
-  document_info = {'id': page['pageID'],
+  document_info = {'source_id': page['pageID'],
                    'title': page['title'],
                    'text': page['plaintext'],
                    'categories': page['categories']}
