@@ -1,12 +1,16 @@
 import pprint
 from pymongo import MongoClient
+import pymysql.cursors
 from functools import reduce
 import pydash as _
 
+def fetch_disambiguation_pages(pages_db):
+  return pages_db.find({"title": {"$regex": "(disambiguation)"}})
+
 def is_valid_page(page):
-  extensions = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
+  flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
   if page and page.get('title'):
-    return not any([_.strings.has_substr(page['title'].lower(), extension) for extension in extensions])
+    return not any([_.strings.has_substr(page['title'].lower(), flag) for flag in flags])
   else:
     return False
 
@@ -32,7 +36,7 @@ def sentence_to_link_contexts(page, sentence):
   if sentence.get('links'):
     for link in sentence['links']:
       if link.get('page'):
-        contexts[link['page']] = {'mention': link['text'],
+        contexts[link['page']] = {'text': link['text'],
                                   'sentence': sentence['text'],
                                   'offset': get_mention_offset(page['plaintext'], sentence['text'], link['text']),
                                   'page_title': page_title}
@@ -50,7 +54,6 @@ def get_link_contexts(page):
   sentences = sum([section['sentences'] for section in sections], [])
   return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), sentences, {})
 
-
 def process_page(page):
   document_info = {'id': page['pageID'],
                    'title': page['title'],
@@ -61,47 +64,6 @@ def process_page(page):
   return {'document_info': document_info,
           'link_contexts': link_contexts,
           'entity_counts': entity_counts}
-
-def upsert_category(category):
-  pass
-
-def insert_page_category(page_id, category_id):
-  pass
-
-def get_page_id(page_title):
-  pass
-
-def get_category_id(category):
-  pass
-
-def insert_category_association(page_title, category):
-  insert_page_category(get_page_id(page_title),
-                       get_category_id(category))
-
-def insert_category_associations(processed_page):
-  for category in processed_page['categories']:
-    insert_category_association(processed_page['title'], category)
-
-def insert_page(processed_page):
-  pass
-
-def insert_processed_page(client, processed_page):
-  for category in processed_page['categories']:
-    upsert_category(category)
-  insert_page(processed_page)
-  insert_category_associations(processed_page)
-
-def insert_mention(entity, mention):
-  pass
-
-def upsert_entity(entity):
-  pass
-
-def insert_link_contexts(link_contexts):
-  for entity, mentions in link_contexts.iteritems():
-    upsert_entity(entity)
-    for mention in mentions:
-      insert_mention(entity, mention)
 
 def merge_mentions(processed_pages):
   concat = lambda dest, src: dest + src if dest else src
@@ -124,9 +86,37 @@ def main():
   initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
   processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch)
   merged = merge_mentions(processed_pages)
+
+
+  # Connect to the database
+  connection = pymysql.connect(host='localhost',
+                               user='user',
+                               password='passwd',
+                               db='db',
+                               charset='utf8mb4',
+                               cursorclass=pymysql.cursors.DictCursor)
+
+  try:
+      with connection.cursor() as cursor:
+          # Create a new record
+          sql = "INSERT INTO `users` (`email`, `password`) VALUES (%s, %s)"
+          cursor.execute(sql, ('webmaster@python.org', 'very-secret'))
+
+      # connection is not autocommit by default. So you must commit to save
+      # your changes.
+      connection.commit()
+
+      with connection.cursor() as cursor:
+          # Read a single record
+          sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
+          cursor.execute(sql, ('webmaster@python.org',))
+          result = cursor.fetchone()
+          print(result)
+  finally:
+      connection.close()
   for processed_page in processed_pages:
-    insert_processed_page(client, processed_page)
-  insert_link_contexts(merged['link_contexts'])
+    insert_processed_wp_page(client, processed_page)
+    insert_link_contexts(cursor, processed_page)
 
 
 if __name__ == "__main__": main()
