@@ -67,7 +67,10 @@ def sentence_to_link_contexts_reducer(page, contexts_acc, sentence):
 def get_link_contexts(page):
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections], [])
-  return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), sentences, {})
+  sentences_from_tables = sum([[table['data'] for table in section['tables'][0]] for section in sections if section.get('tables')],
+                              [])
+  all_sentences = sentences + sentences_from_tables
+  return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
 
 def process_page(page):
   document_info = {'source_id': page['pageID'],
