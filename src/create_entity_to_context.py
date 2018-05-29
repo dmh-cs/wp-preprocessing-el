@@ -18,6 +18,7 @@ def main():
 
   client = MongoClient()
   dbname = 'afwiki'
+  print('Reading from mongodb db', dbname)
   db = client[dbname]
   pages_db = db['pages']
   num_seed_pages = 10
