@@ -17,17 +17,28 @@ def is_valid_link(link):
   else:
     return False
 
-def process_seed_pages(pages_db, seed_pages, depth=1):
-  if depth != 1: raise NotImplementedError('Depth other than 1 not implemented yet')
-  visited_page_titles = [page['title'] for page in seed_pages]
-  processed_pages = [process_page(page) for page in seed_pages if is_valid_page(page)]
+def get_outlinks(processed_pages):
   link_names = sum([list(processed_page['link_contexts'].keys()) for processed_page in processed_pages],
                    [])
-  pages_referenced = list(link_names)
-  for page_title in _.arrays.difference(pages_referenced, visited_page_titles):
-    page = pages_db.find_one({'_id': page_title})
-    if is_valid_page(page):
-      processed_pages.append(process_page(page))
+  return set(link_names)
+
+def _process_pages(pages):
+  return [process_page(page) for page in pages if is_valid_page(page)]
+
+def _fetch_pages(pages_db, page_titles):
+  return [pages_db.find_one({'_id': title}) for title in page_titles]
+
+def process_seed_pages(pages_db, seed_pages, depth=1):
+  processed_pages = _process_pages(seed_pages)
+  latest_processed_pages = processed_pages
+  visited_page_titles = set([processed_page['document_info']['title'] for processed_page in processed_pages])
+  for layer in range(depth):
+    pages_referenced = get_outlinks(latest_processed_pages)
+    page_titles_to_fetch = pages_referenced - visited_page_titles
+    pages_to_process = _fetch_pages(pages_db, page_titles_to_fetch)
+    latest_processed_pages = _process_pages(pages_to_process)
+    processed_pages += latest_processed_pages
+    visited_page_titles = visited_page_titles.union(pages_referenced)
   return processed_pages
 
 def get_mention_offset(page_text, sentence_text, mention):
@@ -67,7 +78,7 @@ def sentence_to_link_contexts_reducer(page, contexts_acc, sentence):
 def get_link_contexts(page):
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections], [])
-  sentences_from_tables = sum([[table['data'] for table in section['tables'][0]] for section in sections if section.get('tables')],
+  sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables
   return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
