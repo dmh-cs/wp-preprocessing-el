@@ -18,7 +18,7 @@ def _get_category_id(cursor, category):
   query_result = cursor.fetchone()
   return query_result['id'] if query_result else None
 
-def _insert_mention(cursor, mention, entity_id, page_id, source):
+def _insert_mention(cursor, mention, entity_id, page_id):
   cursor.execute("INSERT INTO `mentions` (`text`, `offset`, `page_id`) VALUES (%s, %s, %s)",
                  (mention['text'],
                   mention['offset'],
@@ -62,4 +62,4 @@ def insert_link_contexts(cursor, processed_page, source):
   for entity, mentions in processed_page['link_contexts'].items():
     entity_id = _insert_entity(cursor, entity)
     for mention in mentions:
-      _insert_mention(cursor, mention, entity_id, page_id, source)
+      _insert_mention(cursor, mention, entity_id, page_id)
