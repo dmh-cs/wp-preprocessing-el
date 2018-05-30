@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS entity_mentions;
+DROP TABLE IF EXISTS page_categories;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS mentions;
 DROP TABLE IF EXISTS pages;
