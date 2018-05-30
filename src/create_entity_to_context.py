@@ -24,7 +24,7 @@ def main():
   num_seed_pages = 10
   print('Fetching WP pages using', num_seed_pages, 'seed pages')
   initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
-  processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch)
+  processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch, depth=2)
   print('Processing WP pages')
 
   connection = pymysql.connect(host=DATABASE_HOST,
@@ -32,9 +32,13 @@ def main():
                                password=DATABASE_PASSWORD,
                                db=DATABASE_NAME,
                                charset='utf8mb4',
+                               use_unicode=True,
                                cursorclass=pymysql.cursors.DictCursor)
   try:
     with connection.cursor() as cursor:
+      cursor.execute("SET NAMES utf8mb4;")
+      cursor.execute("SET CHARACTER SET utf8mb4;")
+      cursor.execute("SET character_set_connection=utf8mb4;")
       print('Inserting processed pages')
       source = 'wikipedia'
       for processed_page in progressbar(processed_pages):
