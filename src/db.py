@@ -1,3 +1,5 @@
+from utils import build_cursor_generator
+
 def _insert_entity(cursor, entity):
   cursor.execute("REPLACE INTO `entities` (`text`) VALUES (%s)",
                  (entity))
@@ -37,6 +39,20 @@ def _insert_page_category(cursor, page_id, category_id, options):
   else:
     cursor.execute("INSERT INTO `page_categories` (`category_id`, `page_id`) VALUES (%s, %s)",
                    (category_id, page_id))
+
+def get_page_ids_with_mentions(cursor):
+  cursor.execute("SELECT DISTINCT `page_id` from mentions")
+  return [row['page_id'] for row in cursor.fetchall()]
+
+def get_pages_having_mentions(cursor):
+  cursor.execute("SELECT DISTINCT page_id FROM mentions")
+  page_ids = [row['page_id'] for row in cursor.fetchall()]
+  cursor.execute("SELECT * FROM pages WHERE id IN (" + ','.join(page_ids) + ")")
+  return build_cursor_generator(cursor)
+
+def get_page_mentions(cursor, page_id):
+  cursor.execute("SELECT * from mentions WHERE page_id = (%s)", (page_id))
+  return cursor.fetchone()
 
 def insert_category_associations(cursor, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']
