@@ -8,6 +8,13 @@ from progressbar import progressbar
 from parsers import parse_for_sentence_offsets, parse_for_token_offsets
 from db import get_page_mentions, get_pages_having_mentions
 
+def get_sentence(page_content, sentence_start, sentence_end):
+  return page_content[sentence_start : sentence_end]
+
+def write_page_iobes(page, page_iobes):
+  with open('./out/' + page + '.iobes', 'w') as f:
+    f.write('\n'.join(page_iobes))
+
 def label_iobes(mention_start_end_offsets, token_start, token_end):
   if any([_.predicates.is_equal([token_start, token_end],
                                 mention_start_end) for mention_start_end in mention_start_end_offsets]):
@@ -20,13 +27,6 @@ def label_iobes(mention_start_end_offsets, token_start, token_end):
     return 'I'
   else:
     return 'O'
-
-def get_sentence(page_content, sentence_start, sentence_end):
-  return page_content[sentence_start : sentence_end]
-
-def write_page_iobes(page, page_iobes):
-  with open('./out/' + page + '.iobes', 'w') as f:
-    f.write('\n'.join(page_iobes))
 
 def get_page_iobes(cursor, page):
   page_iobes = []
