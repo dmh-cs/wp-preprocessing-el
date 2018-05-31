@@ -24,24 +24,6 @@ def label_iobes(mention_start_end_offsets, token_start, token_end):
 def get_sentence(page_content, sentence_start, sentence_end):
   return page_content[sentence_start : sentence_end]
 
-def offset_closest_to_left(offsets, offset_to_match):
-  closest_offset_index = 0
-  for index, offset in enumerate(offsets):
-    diff = offset - offset_to_match
-    min_diff = offsets[closest_offset_index] - offset_to_match
-    if diff < 0 and diff > min_diff:
-      closest_offset_index = index
-  return closest_offset_index
-
-def offset_closest_to_right(offsets, offset_to_match):
-  closest_offset_index = 0
-  for index, offset in enumerate(offsets):
-    diff = offset - offset_to_match
-    min_diff = offsets[closest_offset_index] - offset_to_match
-    if diff > 0 and diff < min_diff:
-      closest_offset_index = index
-  return closest_offset_index
-
 def write_page_iobes(page, page_iobes):
   with open('./out/' + page + '.iobes', 'w') as f:
     f.write('\n'.join(page_iobes))
