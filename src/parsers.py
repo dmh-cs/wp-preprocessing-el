@@ -15,7 +15,7 @@ _treebank_word_tokenizer.PUNCTUATION.insert(0, (improved_punct_regex, r'\1 \2 \3
 
 def parse_for_sentence_offsets(page_content):
   tokenizer = load('tokenizers/punkt/{0}.pickle'.format('english'))
-  return tokenizer.span_tokenize(page_content)
+  return list(tokenizer.span_tokenize(page_content))
 
 def parse_for_token_offsets(sentence):
-  return _treebank_word_tokenizer.span_tokenize(sentence)
+  return list(_treebank_word_tokenizer.span_tokenize(sentence))
