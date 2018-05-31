@@ -1,3 +1,4 @@
+import pydash as _
 from utils import build_cursor_generator
 
 def _insert_entity(cursor, entity):
@@ -47,12 +48,16 @@ def get_page_ids_with_mentions(cursor):
 def get_pages_having_mentions(cursor):
   cursor.execute("SELECT DISTINCT page_id FROM mentions")
   page_ids = [row['page_id'] for row in cursor.fetchall()]
-  cursor.execute("SELECT * FROM pages WHERE id IN (" + ','.join(page_ids) + ")")
+  cursor.execute("SELECT * FROM pages WHERE id IN (" + _.strings.join(page_ids, ',') + ")")
   return build_cursor_generator(cursor)
 
 def get_page_mentions(cursor, page_id):
   cursor.execute("SELECT * from mentions WHERE page_id = (%s)", (page_id))
   return cursor.fetchone()
+
+def get_page_titles(cursor, page_ids):
+  cursor.execute("SELECT pages.title WHERE pages.id IN (" + _.strings.join(page_ids, ',') + ")")
+  return _.collections.pluck(cursor.fetchall(), 'title')
 
 def insert_category_associations(cursor, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']
