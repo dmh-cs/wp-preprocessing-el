@@ -62,6 +62,10 @@ def _merge_start_end_offsets(start_end_offsets, start_end_offsets_to_merge):
   offsets = start_end_offsets
   dropped_mention_indexes = []
   for i, new_start_end in enumerate(start_end_offsets_to_merge):
+    mention_is_between_tokens = any([new_start_end[0] == end for _, end in offsets]) or \
+                                any([new_start_end[1] == start for start, _ in offsets])
+    if mention_is_between_tokens:
+      dropped_mention_indexes.append(i)
     new_start, new_end = new_start_end
     try:
       offsets = _splice_at(offsets, new_start)
@@ -89,7 +93,8 @@ def get_page_iobes(page, mentions, mention_link_titles):
     token_offsets = [[offset[0] + sentence_start,
                       offset[1] + sentence_start] for offset in sentence_token_offsets]
     try:
-      all_offsets, dropped_indexes = _merge_start_end_offsets(token_offsets, sentence_mention_start_end_offsets)
+      all_offsets, dropped_indexes = _merge_start_end_offsets(token_offsets,
+                                                              sentence_mention_start_end_offsets)
       _.pull_at(sentence_mention_start_end_offsets, dropped_indexes)
       _.pull_at(sentence_mention_link_titles, dropped_indexes)
     except ValueError:
