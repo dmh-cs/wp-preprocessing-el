@@ -6,21 +6,24 @@ from parsers import parse_for_sentence_offsets, parse_for_token_offsets
 def _get_sentence(page_content, sentence_start, sentence_end):
   return page_content[sentence_start : sentence_end]
 
-def _label_iobes_reducer(mention_start_end_offsets, sentence_iobes, token_start_end):
+def _label_iobes(mention_start_end_offsets, token_start_end):
   [token_start, token_end] = token_start_end
   if any([token_start == mention_start and token_end == mention_end for mention_start, mention_end in mention_start_end_offsets]):
-    sentence_iobes.append('S')
+    return 'S'
   elif any([token_start == mention_start for mention_start, _ in mention_start_end_offsets]):
-    sentence_iobes.append('B')
+    return 'B'
   elif any([token_end == mention_end for _, mention_end in mention_start_end_offsets]):
-    sentence_iobes.append('E')
+    return 'E'
   elif any([token_start > mention_start and token_end < mention_end for mention_start, mention_end in mention_start_end_offsets]):
-    sentence_iobes.append('I')
+    return 'I'
   else:
-    if not _.predicates.is_empty(sentence_iobes) and sentence_iobes[-1] in ['I', 'B']:
-      print('Sentence IOBES so far:', sentence_iobes)
-      raise ValueError('Inserting O after ' + sentence_iobes[-1] + ' will create an unbalanced IOBES string')
-    sentence_iobes.append('O')
+    return 'O'
+
+def _label_iobes_reducer(mention_start_end_offsets, sentence_iobes, token_start_end):
+  sentence_iobes.append(_label_iobes(mention_start_end_offsets, token_start_end))
+  if len(sentence_iobes) > 1 and sentence_iobes[-2] in ['I', 'B'] and sentence_iobes[-1] == 'O':
+    print('Sentence IOBES so far:', sentence_iobes)
+    raise ValueError('Inserting O after ' + sentence_iobes[-1] + ' will create an unbalanced IOBES string')
   return sentence_iobes
 
 def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
@@ -39,24 +42,59 @@ def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
   for _ in range(mention_ctr): mention_link_titles.pop(0)
   return with_link_titles
 
+def _get_splice(start_end_offset, index):
+  if index == start_end_offset[0] or index == start_end_offset[1]:
+    return
+  else:
+    return [(start_end_offset[0], index), (index, start_end_offset[1])]
+
+def _splice_at(start_end_offsets, index):
+  for i, start_end_offset in enumerate(start_end_offsets):
+    if index >= start_end_offset[0] and index <= start_end_offset[1]:
+      splice = _get_splice(start_end_offsets[i], index)
+      if splice:
+        return start_end_offsets[:i] + splice + start_end_offsets[i + 1:]
+      else:
+        return start_end_offsets
+  print('start_end_offsets:', start_end_offsets)
+  print('Split index:', index)
+  raise ValueError('Mention extends outside of detected tokens')
+
+def _merge_start_end_offsets(start_end_offsets, start_end_offsets_to_merge):
+  offsets = start_end_offsets
+  for new_start_end in start_end_offsets_to_merge:
+    new_start, new_end = new_start_end
+    offsets = _splice_at(offsets, new_start)
+    offsets = _splice_at(offsets, new_end)
+  return offsets
+
 def get_page_iobes(page, mentions, mention_link_titles):
-  mention_link_titles_remaining = mention_link_titles
+  mention_link_titles_remaining = _.clone(mention_link_titles)
   page_iobes = []
   page_content = page['content']
   page_tokens = []
+  mention_start_end_offsets = [[mention['offset'],
+                                mention['offset'] + len(mention['text'])] for mention in mentions]
   for sentence_start, sentence_end in parse_for_sentence_offsets(page_content):
+    f = lambda start_end_offset: start_end_offset[0] >= sentence_start and start_end_offset[1] <= sentence_end
+    sentence_mention_start_end_offsets = _.collections.filter_(mention_start_end_offsets, f)
     sentence = _get_sentence(page_content, sentence_start, sentence_end)
     sentence_token_offsets = parse_for_token_offsets(sentence)
     page_tokens += sentence_token_offsets
     sentence_tokens = [sentence[start : end] for start, end in sentence_token_offsets]
     token_offsets = [[offset[0] + sentence_start,
                       offset[1] + sentence_start] for offset in sentence_token_offsets]
-    token_start_offsets = [offset[0] for offset in token_offsets]
-    token_end_offsets = [offset[1] for offset in token_offsets]
-    mention_start_end_offsets = [[mention['offset'],
-                                  mention['offset'] + len(mention['text'])] for mention in mentions]
     try:
-      iobes_sequence = reduce(_.functions.curry(_label_iobes_reducer)(mention_start_end_offsets),
+      all_offsets = _merge_start_end_offsets(token_offsets, sentence_mention_start_end_offsets)
+    except ValueError:
+      print('Page:', page['title'])
+      print('Sentence:', sentence)
+      print('Mentions remaining:', mention_link_titles_remaining)
+      raise
+    token_start_offsets = [offset[0] for offset in all_offsets]
+    token_end_offsets = [offset[1] for offset in all_offsets]
+    try:
+      iobes_sequence = reduce(_.functions.curry(_label_iobes_reducer)(sentence_mention_start_end_offsets),
                               zip(token_start_offsets, token_end_offsets),
                               [])
     except ValueError:
