@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS pages (
 `content` MEDIUMTEXT CHARACTER SET utf8mb4 NOT NULL,
 `source` varchar(255) NOT NULL,
 PRIMARY KEY (`id`),
-INDEX (`source_id`)
+INDEX (`source_id`),
+UNIQUE KEY (`source`, `source_id`)
 );
 
 CREATE TABLE IF NOT EXISTS categories (
