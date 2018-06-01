@@ -1,5 +1,4 @@
 import pydash as _
-import chalk
 
 from parsers import parse_for_sentence_offsets, parse_for_token_offsets
 
@@ -56,16 +55,6 @@ def get_page_iobes(page, mentions, mention_link_titles):
                                                                         sentence_tokens)
     page_iobes.append(iobes_with_link_titles_and_content)
   return page_iobes
-
-def pretty_print_page_iobes(page_iobes):
-  chalked_sentence_iobes = []
-  for sentence_iobes in page_iobes:
-    for iobes in sentence_iobes:
-      if len(iobes) == 3:
-        chalked_sentence_iobes.append(chalk.green(' '.join(iobes)))
-      else:
-        chalked_sentence_iobes.append(' '.join(iobes))
-  print('\n'.join(chalked_sentence_iobes))
 
 def write_page_iobes(page, page_iobes):
   with open('./out/' + page + '.iobes', 'w') as f:

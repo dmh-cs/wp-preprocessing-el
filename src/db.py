@@ -84,3 +84,10 @@ def insert_link_contexts(cursor, processed_page, source):
     entity_id = _insert_entity(cursor, entity)
     for mention in mentions:
       _insert_mention(cursor, mention, entity_id, page_id)
+
+def get_page_and_mentions_by_entity(cursor, page_id):
+  cursor.execute("SELECT * from pages WHERE id = (%s)", (page_id))
+  page = cursor.fetchone()
+  cursor.execute("SELECT * from mention_by_entity WHERE page_id = (%s)", (page_id))
+  mentions_by_entity = cursor.fetchall()
+  return page, mentions_by_entity

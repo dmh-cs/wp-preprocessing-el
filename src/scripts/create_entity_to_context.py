@@ -5,12 +5,15 @@ from pathlib import Path
 from progressbar import progressbar
 from pymongo import MongoClient
 
+import sys
+sys.path.append('./src')
+
 from db import insert_wp_page, insert_category_associations, insert_link_contexts
 from process_pages import process_seed_pages
 
 
 def main():
-  load_dotenv(dotenv_path=Path('../db') / '.env')
+  load_dotenv(dotenv_path=Path('db') / '.env')
   DATABASE_NAME = os.getenv("DBNAME")
   DATABASE_USER = os.getenv("DBUSER")
   DATABASE_PASSWORD = os.getenv("DBPASS")
