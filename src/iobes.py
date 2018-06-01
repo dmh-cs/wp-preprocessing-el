@@ -1,21 +1,27 @@
 import pydash as _
+from functools import reduce
 
 from parsers import parse_for_sentence_offsets, parse_for_token_offsets
 
 def _get_sentence(page_content, sentence_start, sentence_end):
   return page_content[sentence_start : sentence_end]
 
-def _label_iobes(mention_start_end_offsets, token_start, token_end):
+def _label_iobes_reducer(mention_start_end_offsets, sentence_iobes, token_start_end):
+  [token_start, token_end] = token_start_end
   if any([token_start == mention_start and token_end == mention_end for mention_start, mention_end in mention_start_end_offsets]):
-    return 'S'
+    sentence_iobes.append('S')
   elif any([token_start == mention_start for mention_start, _ in mention_start_end_offsets]):
-    return 'B'
+    sentence_iobes.append('B')
   elif any([token_end == mention_end for _, mention_end in mention_start_end_offsets]):
-    return 'E'
+    sentence_iobes.append('E')
   elif any([token_start > mention_start and token_end < mention_end for mention_start, mention_end in mention_start_end_offsets]):
-    return 'I'
+    sentence_iobes.append('I')
   else:
-    return 'O'
+    if not _.predicates.is_empty(sentence_iobes) and sentence_iobes[-1] in ['I', 'B']:
+      print('Sentence IOBES so far:', sentence_iobes)
+      raise ValueError('Inserting O after ' + sentence_iobes[-1] + ' will create an unbalanced IOBES string')
+    sentence_iobes.append('O')
+  return sentence_iobes
 
 def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
   '''WARNING: Mutates `mention_link_titles`'''
@@ -49,8 +55,15 @@ def get_page_iobes(page, mentions, mention_link_titles):
     token_end_offsets = [offset[1] for offset in token_offsets]
     mention_start_end_offsets = [[mention['offset'],
                                   mention['offset'] + len(mention['text'])] for mention in mentions]
-    iobes_sequence = [_label_iobes(mention_start_end_offsets, start, end) for start, end in zip(token_start_offsets,
-                                                                                                     token_end_offsets)]
+    try:
+      iobes_sequence = reduce(_.functions.curry(_label_iobes_reducer)(mention_start_end_offsets),
+                              zip(token_start_offsets, token_end_offsets),
+                              [])
+    except ValueError:
+      print('Page:', page['title'])
+      print('Sentence:', sentence)
+      print('Mentions remaining:', mention_link_titles_remaining)
+      raise
     iobes_with_link_titles_and_content = _insert_link_titles_and_tokens(iobes_sequence,
                                                                         mention_link_titles_remaining,
                                                                         sentence_tokens)
