@@ -30,7 +30,8 @@ def main():
       cursor.execute("SET NAMES utf8mb4;")
       cursor.execute("SET CHARACTER SET utf8mb4;")
       cursor.execute("SET character_set_connection=utf8mb4;")
-      for page in progressbar(get_pages_having_mentions(cursor)):
+      pages, page_count = get_pages_having_mentions(cursor)
+      for page in progressbar(pages, max_value=page_count):
         page_id = page['id']
         sorted_mentions = get_page_mentions_by_entity(cursor, page_id)
         mention_link_titles = _.collections.pluck(sorted_mentions, 'entity')
