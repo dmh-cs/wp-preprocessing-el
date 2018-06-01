@@ -54,17 +54,21 @@ def _splice_at(start_end_offsets, index):
         return start_end_offsets[:i] + splice + start_end_offsets[i + 1:]
       else:
         return start_end_offsets
-  print('start_end_offsets:', start_end_offsets)
-  print('Split index:', index)
-  raise ValueError('Mention extends outside of detected tokens')
+  raise ValueError('start_end_offsets:', start_end_offsets, '\n',
+                   'Split index:', index, '\n',
+                   'Mention extends outside of detected tokens')
 
 def _merge_start_end_offsets(start_end_offsets, start_end_offsets_to_merge):
   offsets = start_end_offsets
-  for new_start_end in start_end_offsets_to_merge:
+  dropped_mention_indexes = []
+  for i, new_start_end in enumerate(start_end_offsets_to_merge):
     new_start, new_end = new_start_end
-    offsets = _splice_at(offsets, new_start)
-    offsets = _splice_at(offsets, new_end)
-  return offsets
+    try:
+      offsets = _splice_at(offsets, new_start)
+      offsets = _splice_at(offsets, new_end)
+    except ValueError:
+      dropped_mention_indexes.append(i)
+  return offsets, dropped_mention_indexes
 
 def get_page_iobes(page, mentions, mention_link_titles):
   page_iobes = []
@@ -85,7 +89,9 @@ def get_page_iobes(page, mentions, mention_link_titles):
     token_offsets = [[offset[0] + sentence_start,
                       offset[1] + sentence_start] for offset in sentence_token_offsets]
     try:
-      all_offsets = _merge_start_end_offsets(token_offsets, sentence_mention_start_end_offsets)
+      all_offsets, dropped_indexes = _merge_start_end_offsets(token_offsets, sentence_mention_start_end_offsets)
+      _.pull_at(sentence_mention_start_end_offsets, dropped_indexes)
+      _.pull_at(sentence_mention_link_titles, dropped_indexes)
     except ValueError:
       print('Page:', page['title'])
       print('Sentence:', sentence)
