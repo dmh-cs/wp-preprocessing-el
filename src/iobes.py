@@ -1,5 +1,6 @@
 import pydash as _
 from functools import reduce
+import re
 
 from parsers import parse_for_sentence_offsets, parse_for_token_offsets
 
@@ -72,7 +73,7 @@ def _merge_start_end_offsets(start_end_offsets, start_end_offsets_to_merge):
       offsets = _splice_at(offsets, new_end)
     except ValueError:
       dropped_mention_indexes.append(i)
-  return offsets, dropped_mention_indexes
+  return offsets, _.uniq(dropped_mention_indexes)
 
 def get_page_iobes(page, mentions, mention_link_titles):
   page_iobes = []
@@ -120,5 +121,5 @@ def get_page_iobes(page, mentions, mention_link_titles):
   return page_iobes
 
 def write_page_iobes(page, page_iobes):
-  with open('./out/' + page['title'] + '.iobes', 'w') as f:
-    f.write('\n\n'.join(['\n'.join([' '.join(iobes) for iobes in sentence_iobes]) for sentence_iobes in page_iobes]))
+  with open('./out/' + re.sub(r'\W+', '', page['title']) + '.iobes', 'w') as f:
+    f.write(page['title'] + '\n' + '\n\n'.join(['\n'.join([' '.join(iobes) for iobes in sentence_iobes]) for sentence_iobes in page_iobes]))
