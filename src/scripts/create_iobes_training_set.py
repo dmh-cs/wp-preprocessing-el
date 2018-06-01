@@ -9,7 +9,6 @@ import sys
 sys.path.append('./src')
 
 from db import get_page_mentions_by_entity, get_pages_having_mentions, get_page_titles
-from db import get_page_and_mentions_by_entity
 from iobes import get_page_iobes, write_page_iobes
 
 
