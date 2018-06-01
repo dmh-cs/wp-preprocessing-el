@@ -27,7 +27,6 @@ def _label_iobes_reducer(mention_start_end_offsets, sentence_iobes, token_start_
   return sentence_iobes
 
 def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
-  '''WARNING: Mutates `mention_link_titles`'''
   with_link_titles = []
   mention_ctr = 0
   for token, iobes in zip(tokens, iobes_sequence):
@@ -39,7 +38,6 @@ def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
       if iobes == 'S' or iobes == 'E':
         mention_ctr += 1
     with_link_titles.append(row)
-  for _ in range(mention_ctr): mention_link_titles.pop(0)
   return with_link_titles
 
 def _get_splice(start_end_offset, index):
@@ -69,15 +67,17 @@ def _merge_start_end_offsets(start_end_offsets, start_end_offsets_to_merge):
   return offsets
 
 def get_page_iobes(page, mentions, mention_link_titles):
-  mention_link_titles_remaining = _.clone(mention_link_titles)
   page_iobes = []
   page_content = page['content']
   page_tokens = []
   mention_start_end_offsets = [[mention['offset'],
                                 mention['offset'] + len(mention['text'])] for mention in mentions]
   for sentence_start, sentence_end in parse_for_sentence_offsets(page_content):
-    f = lambda start_end_offset: start_end_offset[0] >= sentence_start and start_end_offset[1] <= sentence_end
-    sentence_mention_start_end_offsets = _.collections.filter_(mention_start_end_offsets, f)
+    f = lambda group: group[0][0] >= sentence_start and group[0][1] <= sentence_end
+    filtered = _.collections.filter_(zip(mention_start_end_offsets, mention_link_titles),
+                                     f)
+    sentence_mention_start_end_offsets = [offset for offset, title in filtered]
+    sentence_mention_link_titles = [title for offset, title in filtered]
     sentence = _get_sentence(page_content, sentence_start, sentence_end)
     sentence_token_offsets = parse_for_token_offsets(sentence)
     page_tokens += sentence_token_offsets
@@ -89,7 +89,7 @@ def get_page_iobes(page, mentions, mention_link_titles):
     except ValueError:
       print('Page:', page['title'])
       print('Sentence:', sentence)
-      print('Mentions remaining:', mention_link_titles_remaining)
+      print('Sentence mentions:', sentence_mention_link_titles)
       raise
     token_start_offsets = [offset[0] for offset in all_offsets]
     token_end_offsets = [offset[1] for offset in all_offsets]
@@ -100,10 +100,10 @@ def get_page_iobes(page, mentions, mention_link_titles):
     except ValueError:
       print('Page:', page['title'])
       print('Sentence:', sentence)
-      print('Mentions remaining:', mention_link_titles_remaining)
+      print('Sentence mentions:', sentence_mention_link_titles)
       raise
     iobes_with_link_titles_and_content = _insert_link_titles_and_tokens(iobes_sequence,
-                                                                        mention_link_titles_remaining,
+                                                                        sentence_mention_link_titles,
                                                                         sentence_tokens)
     page_iobes.append(iobes_with_link_titles_and_content)
   return page_iobes
