@@ -8,7 +8,8 @@ from progressbar import progressbar
 import sys
 sys.path.append('./src')
 
-from db import get_page_mentions, get_pages_having_mentions, get_page_titles
+from db import get_page_mentions_by_entity, get_pages_having_mentions, get_page_titles
+from db import get_page_and_mentions_by_entity
 from iobes import get_page_iobes, write_page_iobes
 
 
@@ -32,9 +33,9 @@ def main():
       cursor.execute("SET character_set_connection=utf8mb4;")
       for page in progressbar(get_pages_having_mentions(cursor)):
         page_id = page['id']
-        mentions = get_page_mentions(cursor, page_id)
-        mention_link_titles = get_page_titles(cursor, _.collections.pluck(mentions, 'page_id'))
-        page_iobes = get_page_iobes(page, mentions, mention_link_titles)
+        sorted_mentions = get_page_mentions_by_entity(cursor, page_id)
+        mention_link_titles = _.collections.pluck(sorted_mentions, 'entity')
+        page_iobes = get_page_iobes(page, sorted_mentions, mention_link_titles)
         write_page_iobes(page, page_iobes)
   finally:
     connection.close()

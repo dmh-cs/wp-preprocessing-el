@@ -23,13 +23,14 @@ def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
   mention_ctr = 0
   for token, iobes in zip(tokens, iobes_sequence):
     row = []
-    row.append(token)
     row.append(iobes)
-    if iobes == 'E' or iobes == 'S':
+    row.append(token)
+    if iobes != 'O':
       row.append(mention_link_titles[mention_ctr])
-      mention_ctr += 1
+      if iobes == 'S' or iobes == 'E':
+        mention_ctr += 1
     with_link_titles.append(row)
-  _.arrays.drop(mention_link_titles, mention_ctr)
+  for _ in range(mention_ctr): mention_link_titles.pop(0)
   return with_link_titles
 
 def get_page_iobes(page, mentions, mention_link_titles):
@@ -57,5 +58,5 @@ def get_page_iobes(page, mentions, mention_link_titles):
   return page_iobes
 
 def write_page_iobes(page, page_iobes):
-  with open('./out/' + page + '.iobes', 'w') as f:
-    f.write('\n'.join(page_iobes))
+  with open('./out/' + page['title'] + '.iobes', 'w') as f:
+    f.write('\n\n'.join(['\n'.join([' '.join(iobes) for iobes in sentence_iobes]) for sentence_iobes in page_iobes]))
