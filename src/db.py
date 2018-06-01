@@ -52,11 +52,15 @@ def get_pages_having_mentions(cursor):
   return build_cursor_generator(cursor)
 
 def get_page_mentions(cursor, page_id):
-  cursor.execute("SELECT * from mentions WHERE page_id = (%s)", (page_id))
-  return cursor.fetchone()
+  cursor.execute("SELECT * from mentions WHERE page_id = (%s) ORDER BY offset", (page_id))
+  return cursor.fetchall()
+
+def get_page_mentions_by_entity(cursor, page_id):
+  cursor.execute("SELECT * from mention_by_entity WHERE page_id = (%s) ORDER BY offset", (page_id))
+  return cursor.fetchall()
 
 def get_page_titles(cursor, page_ids):
-  cursor.execute("SELECT pages.title WHERE pages.id IN (" + _.strings.join(page_ids, ',') + ")")
+  cursor.execute("SELECT title FROM pages WHERE id IN (" + _.strings.join(page_ids, ',') + ")")
   return _.collections.pluck(cursor.fetchall(), 'title')
 
 def insert_category_associations(cursor, processed_page, source):
@@ -71,7 +75,7 @@ def insert_category_associations(cursor, processed_page, source):
       _insert_page_category(cursor, page_id, category_id, {'use_last_id': True})
 
 def insert_wp_page(cursor, processed_page, source):
-  cursor.execute("INSERT INTO `pages` (`source_id`, `title`, `content`, `source`) VALUES (%s, %s, %s, %s)",
+  cursor.execute("REPLACE INTO `pages` (`source_id`, `title`, `content`, `source`) VALUES (%s, %s, %s, %s)",
                  (int(processed_page['document_info']['source_id']),
                   processed_page['document_info']['title'],
                   processed_page['document_info']['text'],
@@ -88,6 +92,6 @@ def insert_link_contexts(cursor, processed_page, source):
 def get_page_and_mentions_by_entity(cursor, page_id):
   cursor.execute("SELECT * from pages WHERE id = (%s)", (page_id))
   page = cursor.fetchone()
-  cursor.execute("SELECT * from mention_by_entity WHERE page_id = (%s)", (page_id))
+  cursor.execute("SELECT * from mention_by_entity WHERE page_id = (%s) ORDER BY offset", (page_id))
   mentions_by_entity = cursor.fetchall()
   return page, mentions_by_entity
