@@ -127,5 +127,13 @@ def get_page_iobes(page, mentions, mention_link_titles):
   return page_iobes
 
 def write_page_iobes(page, page_iobes):
+  content_to_write = page['title'] + '\n'
+  page_content = []
+  for sentence_iobes in page_iobes:
+    sentence_content = []
+    for iobes_chunk in sentence_iobes:
+      sentence_content.append(' '.join(iobes_chunk))
+    page_content.append('\n'.join(sentence_content))
+  content_to_write += '\n\n'.join(page_content)
   with open('./out/' + re.sub(r'\W+', '', page['title']) + '.iobes', 'w') as f:
-    f.write(page['title'] + '\n' + '\n\n'.join(['\n'.join([' '.join(iobes) for iobes in sentence_iobes]) for sentence_iobes in page_iobes]))
+    f.write(content_to_write)
