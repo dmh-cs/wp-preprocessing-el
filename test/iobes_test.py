@@ -8,15 +8,15 @@ import iobes
 
 
 def test__label_iobes():
-  mention_start_end_offsets = [(0, 3), (7, 15)]
-  assert iobes._label_iobes(mention_start_end_offsets, (0, 3)) == 'S'
-  assert iobes._label_iobes(mention_start_end_offsets, (8, 14)) == 'I'
-  assert iobes._label_iobes(mention_start_end_offsets, (4, 6)) == 'O'
-  assert iobes._label_iobes(mention_start_end_offsets, (3, 6)) == 'O'
-  assert iobes._label_iobes(mention_start_end_offsets, (4, 7)) == 'O'
-  assert iobes._label_iobes(mention_start_end_offsets, (3, 7)) == 'O'
-  assert iobes._label_iobes(mention_start_end_offsets, (8, 15)) == 'E'
-  assert iobes._label_iobes(mention_start_end_offsets, (0, 2)) == 'B'
+  mention_spans = [(0, 3), (7, 15)]
+  assert iobes._label_iobes(mention_spans, (0, 3)) == 'S'
+  assert iobes._label_iobes(mention_spans, (8, 14)) == 'I'
+  assert iobes._label_iobes(mention_spans, (4, 6)) == 'O'
+  assert iobes._label_iobes(mention_spans, (3, 6)) == 'O'
+  assert iobes._label_iobes(mention_spans, (4, 7)) == 'O'
+  assert iobes._label_iobes(mention_spans, (3, 7)) == 'O'
+  assert iobes._label_iobes(mention_spans, (8, 15)) == 'E'
+  assert iobes._label_iobes(mention_spans, (0, 2)) == 'B'
 
 def test_get_page_iobes():
   with open('test/fixtures/parade_page_db.json') as f:
