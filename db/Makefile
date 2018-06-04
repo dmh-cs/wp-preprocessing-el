@@ -13,7 +13,6 @@ up:
 	@echo '-- Creating tables --'
 	@echo '-------------------'
 	@echo ''
-	@sleep 1
 	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(DBNAME)" < create_tables.sql
 
 	@echo ''
@@ -21,7 +20,6 @@ up:
 	@echo '-- Creating views --'
 	@echo '-------------------'
 	@echo ''
-	@sleep 1
 	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(DBNAME)" < create_views.sql
 
 down:
@@ -30,7 +28,6 @@ down:
 	@echo '-- Dropping tables --'
 	@echo '-------------------'
 	@echo ''
-	@sleep 1
 	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(DBNAME)" < drop_tables.sql
 
 	@echo ''
@@ -38,7 +35,6 @@ down:
 	@echo '-- Dropping views --'
 	@echo '-------------------'
 	@echo ''
-	@sleep 1
 	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(DBNAME)" < drop_views.sql
 
 .PHONY: help el

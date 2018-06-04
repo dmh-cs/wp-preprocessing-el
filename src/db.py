@@ -2,10 +2,10 @@ import pydash as _
 from utils import build_cursor_generator
 
 def _insert_entity(cursor, entity):
-  cursor.execute("REPLACE INTO `entities` (`text`) VALUES (%s)",
+  cursor.execute("INSERT INTO `entities` (`text`) VALUES (%s) ON DUPLICATE KEY UPDATE id=id",
                  (entity))
-  cursor.execute("SELECT LAST_INSERT_ID()")
-  return cursor.fetchone()['LAST_INSERT_ID()']
+  cursor.execute("SELECT id from entities where text = (%s)", (entity))
+  return cursor.fetchone()['id']
 
 def _get_page_id_from_source_id(cursor, source, source_page_id):
   cursor.execute("SELECT `id` FROM `pages` WHERE source_id = %s AND source = %s",

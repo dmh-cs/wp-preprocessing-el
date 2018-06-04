@@ -57,7 +57,7 @@ ON UPDATE CASCADE ON DELETE CASCADE
 CREATE TABLE IF NOT EXISTS entity_mentions (
 `id` bigint(20) NOT NULL auto_increment,
 `entity_id` bigint(20) NOT NULL,
-`mention_id` bigint(20) NOT NULL,
+`mention_id` bigint(20) NOT NULL UNIQUE,
 
 PRIMARY KEY  (`id`),
 INDEX (`entity_id`),
