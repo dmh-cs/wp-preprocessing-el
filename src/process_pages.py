@@ -84,20 +84,34 @@ def get_link_contexts(page):
   all_sentences = sentences + sentences_from_tables
   return reduce(_.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
 
-def _page_title_exact_match_heuristic(page, link_contexts):
-  matches = re.finditer(page['title'], page['plaintext'])
-  link_context = {page['title']: [{'text': page['title'],
-                                   'offset': match.start(0),
-                                   'page_title': page['title']} for match in matches]}
-  concat = lambda dest, src: dest + src if dest else src
-  if not _.is_empty(link_context[page['title']]):
+def _apply_match_heuristic(page, link_contexts, to_match, entity):
+  matches = re.finditer(to_match, page['plaintext'])
+  link_context = {entity: [{'text': to_match,
+                            'offset': match.start(0),
+                            'page_title': page['title']} for match in matches]}
+  concat = lambda dest, src: _.uniq_by(dest + src, 'offset') if dest else src
+  if not _.is_empty(link_context[entity]):
     return _.merge_with(link_contexts, link_context, iteratee=concat)
   else:
     return link_contexts
 
+def _apply_exact_match_heuristic(page, link_contexts, entity_to_match):
+  return _apply_match_heuristic(page, link_contexts, entity_to_match, entity_to_match)
+
+def _page_title_exact_match_heuristic(page, link_contexts):
+  return _apply_exact_match_heuristic(page, link_contexts, page['title'])
+
+def _link_title_exact_match_heuristic(page, link_contexts):
+  link_titles = _.flatten(_.map_values(link_contexts, 'page_title'))
+  return reduce(_.curry(_apply_exact_match_heuristic)(page),
+                link_titles,
+                link_contexts)
+
 def get_link_contexts_using_heuristics(page):
   link_contexts = get_link_contexts(page)
-  return _page_title_exact_match_heuristic(page, link_contexts)
+  link_contexts = _page_title_exact_match_heuristic(page, link_contexts)
+  link_contexts = _link_title_exact_match_heuristic(page, link_contexts)
+  return link_contexts
 
 def process_page(page):
   document_info = {'source_id': page['pageID'],

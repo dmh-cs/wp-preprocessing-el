@@ -29,7 +29,4 @@ def test_get_page_iobes():
                                    lambda title_mention: title_mention[1]['offset'])
   mentions = _.flat_map(contexts, _.last)
   mention_link_titles = list(map(_.head, contexts))
-  assert _.is_equal(parade_iobes,
-                    iobes.get_page_iobes(parade_page,
-                                         mentions,
-                                         mention_link_titles))
+  assert parade_iobes == iobes.get_page_iobes(parade_page, mentions, mention_link_titles)

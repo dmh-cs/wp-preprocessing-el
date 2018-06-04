@@ -11,6 +11,11 @@
             "sentence": "aDie Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
             "offset": 2095,
             "page_title": "Parade"
+        },
+        {
+            "text": "Kaapstad",
+            "offset": 1910,
+            "page_title": "Parade"
         }
     ],
     "Fort de Goede Hoop": [
@@ -48,6 +53,11 @@
             "text": "Suid-Afrika",
             "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek.",
             "offset": 1194,
+            "page_title": "Parade"
+        },
+        {
+            "text": "Suid-Afrika",
+            "offset": 1897,
             "page_title": "Parade"
         }
     ],
