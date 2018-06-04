@@ -6,11 +6,11 @@ from utils import sort_mentions
 def page_iobes(page_iobes):
   chalked_sentence_iobes = []
   for sentence_iobes in page_iobes:
-    for iobes in sentence_iobes:
-      if len(iobes) == 3:
-        chalked_sentence_iobes.append(chalk.green(' '.join(iobes)))
+    for iobes_chunk in sentence_iobes:
+      if len(iobes_chunk) == 3:
+        chalked_sentence_iobes.append(chalk.green(' '.join(iobes_chunk)))
       else:
-        chalked_sentence_iobes.append(' '.join(iobes))
+        chalked_sentence_iobes.append(' '.join(iobes_chunk))
   print('\n'.join(chalked_sentence_iobes))
 
 def page_contents_with_mentions(page_contents, mentions_by_entity):
