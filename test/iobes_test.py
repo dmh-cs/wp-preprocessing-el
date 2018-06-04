@@ -23,13 +23,13 @@ def test_get_page_iobes():
     parade_page = json.load(f)
   with open('test/fixtures/parade_page_contexts.json') as f:
     parade_page_contexts = json.load(f)
-  context_pairs = _.mapcat(_.objects.to_pairs(parade_page_contexts),
+  context_pairs = _.mapcat(_.to_pairs(parade_page_contexts),
                            lambda pair: [[pair[0], mention] for mention in pair[1]])
-  contexts = _.collections.sort_by(context_pairs,
+  contexts = _.sort_by(context_pairs,
                                    lambda title_mention: title_mention[1]['offset'])
-  mentions = _.collections.flat_map(contexts, _.arrays.last)
-  mention_link_titles = list(map(_.arrays.head, contexts))
-  assert _.predicates.is_equal(parade_iobes,
-                               iobes.get_page_iobes(parade_page,
-                                                    mentions,
-                                                    mention_link_titles))
+  mentions = _.flat_map(contexts, _.last)
+  mention_link_titles = list(map(_.head, contexts))
+  assert _.is_equal(parade_iobes,
+                    iobes.get_page_iobes(parade_page,
+                                         mentions,
+                                         mention_link_titles))

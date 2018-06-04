@@ -90,8 +90,8 @@ def get_page_iobes(page, mentions, mention_link_titles):
                     mention['offset'] + len(mention['text'])] for mention in mentions]
   for sentence_start, sentence_end in parse_for_sentence_spans(page_content):
     f = lambda group: group[0][0] >= sentence_start and group[0][1] <= sentence_end
-    filtered = _.collections.filter_(zip(mention_spans, mention_link_titles),
-                                     f)
+    filtered = _.filter_(zip(mention_spans, mention_link_titles),
+                         f)
     sentence_mention_spans = [offset for offset, title in filtered]
     sentence_mention_link_titles = [title for offset, title in filtered]
     sentence = _get_sentence(page_content, sentence_start, sentence_end)
@@ -112,7 +112,7 @@ def get_page_iobes(page, mentions, mention_link_titles):
     token_start_offsets = [offset[0] for offset in all_spans]
     token_end_offsets = [offset[1] for offset in all_spans]
     try:
-      iobes_sequence = reduce(_.functions.curry(_label_iobes_reducer)(sentence_mention_spans),
+      iobes_sequence = reduce(_.curry(_label_iobes_reducer)(sentence_mention_spans),
                               zip(token_start_offsets, token_end_offsets),
                               [])
     except ValueError:

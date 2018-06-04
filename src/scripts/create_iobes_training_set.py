@@ -34,7 +34,7 @@ def main():
       for page in progressbar(pages, max_value=page_count):
         page_id = page['id']
         sorted_mentions = get_page_mentions_by_entity(cursor, page_id)
-        mention_link_titles = _.collections.pluck(sorted_mentions, 'entity')
+        mention_link_titles = _.pluck(sorted_mentions, 'entity')
         page_iobes = get_page_iobes(page, sorted_mentions, mention_link_titles)
         write_page_iobes(page, page_iobes)
   finally:

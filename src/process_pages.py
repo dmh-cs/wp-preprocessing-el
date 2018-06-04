@@ -1,18 +1,19 @@
 from functools import reduce
+import re
 import pydash as _
 
 def is_valid_page(page):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
   if page and page.get('title'):
-    return not any([_.strings.has_substr(page['title'].lower(), flag) for flag in flags])
+    return not any([_.has_substr(page['title'].lower(), flag) for flag in flags])
   else:
     return False
 
 def is_valid_link(link):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
   if link and link.get('text') and link.get('page'):
-    valid_text = not any([_.strings.has_substr(link['text'].lower(), flag) for flag in flags])
-    valid_page = not any([_.strings.has_substr(link['page'].lower(), flag) for flag in flags])
+    valid_text = not any([_.has_substr(link['text'].lower(), flag) for flag in flags])
+    valid_page = not any([_.has_substr(link['page'].lower(), flag) for flag in flags])
     return valid_text and valid_page
   else:
     return False
@@ -70,9 +71,9 @@ def sentence_to_link_contexts(page, sentence):
 
 def sentence_to_link_contexts_reducer(page, contexts_acc, sentence):
   contexts = sentence_to_link_contexts(page, sentence)
-  if not _.predicates.is_empty(contexts):
+  if not _.is_empty(contexts):
     concat = lambda dest, src: dest + [src] if dest else [src]
-    _.objects.merge_with(contexts_acc, contexts, iteratee=concat)
+    _.merge_with(contexts_acc, contexts, iteratee=concat)
   return contexts_acc
 
 def get_link_contexts(page):
@@ -81,27 +82,42 @@ def get_link_contexts(page):
   sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables
-  return reduce(_.functions.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
+  return reduce(_.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
+
+def _page_title_exact_match_heuristic(page, link_contexts):
+  matches = re.finditer(page['title'], page['plaintext'])
+  link_context = {page['title']: [{'text': page['title'],
+                                   'offset': match.start(0),
+                                   'page_title': page['title']} for match in matches]}
+  concat = lambda dest, src: dest + src if dest else src
+  if not _.is_empty(link_context[page['title']]):
+    return _.merge_with(link_contexts, link_context, iteratee=concat)
+  else:
+    return link_contexts
+
+def get_link_contexts_using_heuristics(page):
+  link_contexts = get_link_contexts(page)
+  return _page_title_exact_match_heuristic(page, link_contexts)
 
 def process_page(page):
   document_info = {'source_id': page['pageID'],
                    'title': page['title'],
                    'text': page['plaintext'],
                    'categories': page['categories']}
-  link_contexts = get_link_contexts(page)
-  entity_counts = _.objects.map_values(link_contexts, len)
+  link_contexts = get_link_contexts_using_heuristics(page)
+  entity_counts = _.map_values(link_contexts, len)
   return {'document_info': document_info,
           'link_contexts': link_contexts,
           'entity_counts': entity_counts}
 
 def merge_mentions(processed_pages):
   concat = lambda dest, src: dest + src if dest else src
-  link_contexts = reduce(lambda acc, val: _.objects.merge_with(acc, val, iteratee=concat),
+  link_contexts = reduce(lambda acc, val: _.merge_with(acc, val, iteratee=concat),
                          [processed_page['link_contexts'] for processed_page in processed_pages],
                          {})
-  entity_counts = reduce(lambda acc, val: _.objects.merge_with(acc, val, iteratee=concat),
+  entity_counts = reduce(lambda acc, val: _.merge_with(acc, val, iteratee=concat),
                           [processed_page['entity_counts'] for processed_page in processed_pages],
                           {})
-  return _.objects.map_values(link_contexts,
-                              lambda val, key: {'link_contexts': val,
-                                                'entity_counts': entity_counts[key]})
+  return _.map_values(link_contexts,
+                      lambda val, key: {'link_contexts': val,
+                                        'entity_counts': entity_counts[key]})
