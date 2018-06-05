@@ -1,6 +1,8 @@
 from functools import reduce
-import re
 import pydash as _
+from progressbar import progressbar
+
+import utils as u
 
 def is_valid_page(page):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
@@ -34,11 +36,15 @@ def process_seed_pages(pages_db, seed_pages, depth=1):
   latest_processed_pages = processed_pages
   visited_page_titles = set([processed_page['document_info']['title'] for processed_page in processed_pages])
   for layer in range(depth):
+    print("Getting referenced pages")
     pages_referenced = get_outlinks(latest_processed_pages)
     page_titles_to_fetch = pages_referenced - visited_page_titles
-    pages_to_process = _fetch_pages(pages_db, page_titles_to_fetch)
-    latest_processed_pages = _process_pages(pages_to_process)
-    processed_pages += latest_processed_pages
+    print("Fetching and processing", len(page_titles_to_fetch), "pages")
+    for batch_num, titles_batch in progressbar(enumerate(u.create_batches(list(page_titles_to_fetch)))):
+      print("Batch num", batch_num)
+      batch_pages_to_process = _fetch_pages(pages_db, titles_batch)
+      latest_processed_pages = _process_pages(batch_pages_to_process)
+      processed_pages += latest_processed_pages
     visited_page_titles = visited_page_titles.union(pages_referenced)
   return processed_pages
 
@@ -85,10 +91,10 @@ def get_link_contexts(page):
   return reduce(_.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
 
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
-  matches = re.finditer(to_match, page['plaintext'])
+  matches = u.match_all(to_match, page['plaintext'])
   link_context = {entity: [{'text': to_match,
-                            'offset': match.start(0),
-                            'page_title': page['title']} for match in matches]}
+                            'offset': match_index,
+                            'page_title': page['title']} for match_index in matches]}
   concat = lambda dest, src: _.uniq_by(dest + src, 'offset') if dest else src
   if not _.is_empty(link_context[entity]):
     return _.merge_with(link_contexts, link_context, iteratee=concat)
@@ -107,10 +113,14 @@ def _link_title_exact_match_heuristic(page, link_contexts):
                 link_titles,
                 link_contexts)
 
+def _entity_for_each_page(page, link_contexts):
+  return _.assign({page['title']: []}, link_contexts)
+
 def get_link_contexts_using_heuristics(page):
   link_contexts = get_link_contexts(page)
   link_contexts = _page_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _link_title_exact_match_heuristic(page, link_contexts)
+  link_contexts = _entity_for_each_page(page, link_contexts)
   return link_contexts
 
 def process_page(page):

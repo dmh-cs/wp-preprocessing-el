@@ -21,3 +21,13 @@ def test_build_cursor_generator():
   for x in gen:
     iteration_counter += 1
   assert iteration_counter == 3 * 1000
+
+def test_match_all():
+  assert u.match_all('p', 'apppap') == [1, 2, 3, 5]
+  assert u.match_all('pp', 'apppap') == [1]
+  assert u.match_all('p', 'a') == []
+
+def test_create_batches():
+  batches = u.create_batches(range(10), 2)
+  for i, batch in enumerate(batches):
+    assert batch == range(i * 2, i * 2 + 2)

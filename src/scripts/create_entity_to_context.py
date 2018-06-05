@@ -24,11 +24,11 @@ def main():
   print('Reading from mongodb db', dbname)
   db = client[dbname]
   pages_db = db['pages']
-  num_seed_pages = 10
+  num_seed_pages = 10000
   print('Fetching WP pages using', num_seed_pages, 'seed pages')
   initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
-  processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch, depth=1)
   print('Processing WP pages')
+  processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch, depth=1)
 
   connection = pymysql.connect(host=DATABASE_HOST,
                                user=DATABASE_USER,
