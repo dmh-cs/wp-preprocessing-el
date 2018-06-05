@@ -31,3 +31,6 @@ def test_create_batches():
   batches = u.create_batches(range(10), 2)
   for i, batch in enumerate(batches):
     assert batch == range(i * 2, i * 2 + 2)
+
+def test_escape_title():
+  assert u.escape_title('List of countries and dependencies by population') == 'List_of_countries_and_dependencies_by_population'

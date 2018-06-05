@@ -2,6 +2,8 @@ import pydash as _
 from functools import reduce
 import re
 
+import utils as u
+
 from parsers import parse_for_sentence_spans, parse_for_token_spans
 
 def _get_sentence(page_content, sentence_start, sentence_end):
@@ -32,12 +34,12 @@ def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
   mention_ctr = 0
   for token, iobes in zip(tokens, iobes_sequence):
     row = []
-    row.append(iobes)
     row.append(token)
     if iobes != 'O':
-      row.append(mention_link_titles[mention_ctr])
+      row.append(u.escape_title(mention_link_titles[mention_ctr]))
       if iobes == 'S' or iobes == 'E':
         mention_ctr += 1
+    row.append(iobes)
     with_link_titles.append(row)
   return with_link_titles
 

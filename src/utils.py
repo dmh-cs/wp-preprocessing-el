@@ -28,3 +28,6 @@ def create_batches(coll, batch_size=1000):
   while ctr * batch_size < len(coll):
     yield coll[ctr * batch_size : (ctr + 1) * batch_size]
     ctr += 1
+
+def escape_title(title):
+  return title.replace(' ', '_')
