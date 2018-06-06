@@ -46,9 +46,7 @@ def get_page_ids_with_mentions(cursor):
   return [row['page_id'] for row in cursor.fetchall()]
 
 def get_pages_having_mentions(cursor):
-  cursor.execute("SELECT DISTINCT page_id FROM mentions")
-  page_ids = [row['page_id'] for row in cursor.fetchall()]
-  cursor.execute("SELECT * FROM pages WHERE id IN (" + _.join(page_ids, ',') + ")")
+  cursor.execute("SELECT * FROM pages WHERE id IN (SELECT DISTINCT page_id FROM mentions)")
   return build_cursor_generator(cursor), cursor.rowcount
 
 def get_page_mentions(cursor, page_id):

@@ -26,17 +26,21 @@ def main():
                                use_unicode=True,
                                cursorclass=pymysql.cursors.DictCursor)
   try:
-    with connection.cursor() as cursor:
-      cursor.execute("SET NAMES utf8mb4;")
-      cursor.execute("SET CHARACTER SET utf8mb4;")
-      cursor.execute("SET character_set_connection=utf8mb4;")
-      pages, page_count = get_pages_having_mentions(cursor)
-      for page in progressbar(pages, max_value=page_count):
-        page_id = page['id']
-        sorted_mentions = get_page_mentions_by_entity(cursor, page_id)
-        mention_link_titles = _.pluck(sorted_mentions, 'entity')
-        page_iobes = get_page_iobes(page, sorted_mentions, mention_link_titles)
-        write_page_iobes(page, page_iobes)
+    with connection.cursor() as pages_cursor:
+      pages_cursor.execute("SET NAMES utf8mb4;")
+      pages_cursor.execute("SET CHARACTER SET utf8mb4;")
+      pages_cursor.execute("SET character_set_connection=utf8mb4;")
+      with connection.cursor() as mentions_cursor:
+        mentions_cursor.execute("SET NAMES utf8mb4;")
+        mentions_cursor.execute("SET CHARACTER SET utf8mb4;")
+        mentions_cursor.execute("SET character_set_connection=utf8mb4;")
+        pages, page_count = get_pages_having_mentions(pages_cursor)
+        for page in progressbar(pages, max_value=page_count):
+          page_id = page['id']
+          sorted_mentions = get_page_mentions_by_entity(mentions_cursor, page_id)
+          mention_link_titles = _.pluck(sorted_mentions, 'entity')
+          page_iobes = get_page_iobes(page, sorted_mentions, mention_link_titles)
+          write_page_iobes(page, page_iobes)
   finally:
     connection.close()
 

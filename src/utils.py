@@ -1,4 +1,5 @@
 import pydash as _
+import urllib
 
 def build_cursor_generator(cursor, buff_len=1000):
   while True:
@@ -30,4 +31,4 @@ def create_batches(coll, batch_size=1000):
     ctr += 1
 
 def escape_title(title):
-  return title.replace(' ', '_')
+  return urllib.parse.quote(title)
