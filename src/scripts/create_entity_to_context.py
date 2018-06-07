@@ -10,6 +10,7 @@ sys.path.append('./src')
 
 from db import insert_wp_page, insert_category_associations, insert_link_contexts
 from process_pages import process_seed_pages
+from redirects import get_redirects_lookup
 
 
 def main():
@@ -27,8 +28,10 @@ def main():
   num_seed_pages = 10000
   print('Fetching WP pages using', num_seed_pages, 'seed pages')
   initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
+  print('Building redirects lookup')
+  redirects_lookup = get_redirects_lookup()
   print('Processing WP pages')
-  processed_pages = process_seed_pages(pages_db, initial_pages_to_fetch, depth=1)
+  processed_pages = process_seed_pages(pages_db, redirects_lookup, initial_pages_to_fetch, depth=1)
 
   connection = pymysql.connect(host=DATABASE_HOST,
                                user=DATABASE_USER,

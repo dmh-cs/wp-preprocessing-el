@@ -3,6 +3,7 @@ import pydash as _
 from progressbar import progressbar
 
 import utils as u
+from data_cleaners import clean_page_content
 
 def is_valid_page(page):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
@@ -25,14 +26,14 @@ def get_outlinks(processed_pages):
                    [])
   return set(link_names)
 
-def _process_pages(pages, is_seed_page=False):
-  return [process_page(page, is_seed_page=is_seed_page) for page in pages if is_valid_page(page)]
+def _process_pages(redirects_lookup, pages, is_seed_page=False):
+  return [process_page(redirects_lookup, page, is_seed_page=is_seed_page) for page in pages if is_valid_page(page)]
 
 def _fetch_pages(pages_db, page_titles):
   return [pages_db.find_one({'_id': title}) for title in page_titles]
 
-def process_seed_pages(pages_db, seed_pages, depth=1):
-  processed_pages = _process_pages(seed_pages, is_seed_page=True)
+def process_seed_pages(pages_db, redirects_lookup, seed_pages, depth=1):
+  processed_pages = _process_pages(redirects_lookup, seed_pages, is_seed_page=True)
   latest_processed_pages = processed_pages
   visited_page_titles = set([processed_page['document_info']['title'] for processed_page in processed_pages])
   for layer in range(depth):
@@ -40,10 +41,10 @@ def process_seed_pages(pages_db, seed_pages, depth=1):
     pages_referenced = get_outlinks(latest_processed_pages)
     page_titles_to_fetch = pages_referenced - visited_page_titles
     print("Fetching and processing", len(page_titles_to_fetch), "pages")
-    for batch_num, titles_batch in progressbar(enumerate(u.create_batches(list(page_titles_to_fetch)))):
+    for batch_num, titles_batch in progressbar(enumerate(u.create_batches(list(page_titles_to_fetch))), max_value=len(page_titles_to_fetch)):
       print("Batch num", batch_num)
       batch_pages_to_process = _fetch_pages(pages_db, titles_batch)
-      latest_processed_pages = _process_pages(batch_pages_to_process)
+      latest_processed_pages = _process_pages(redirects_lookup, batch_pages_to_process)
       processed_pages += latest_processed_pages
     visited_page_titles = visited_page_titles.union(pages_referenced)
   return processed_pages
@@ -59,7 +60,7 @@ def get_mention_offset(page_text, sentence_text, mention):
     raise ValueError('Mention not found in sentence')
   return sentence_page_offset + mention_sentence_offset
 
-def sentence_to_link_contexts(page, sentence):
+def sentence_to_link_contexts(redirects_lookup, page, sentence):
   page_title = page['title']
   contexts = {}
   if sentence.get('links'):
@@ -67,7 +68,8 @@ def sentence_to_link_contexts(page, sentence):
       if link.get('page') and is_valid_link(link):
         try:
           mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link['text'])
-          contexts[link['page']] = {'text': link['text'],
+          followed_redirect = redirects_lookup.get(link['page'])
+          contexts[followed_redirect or link['page']] = {'text': link['text'],
                                     'sentence': sentence['text'],
                                     'offset': mention_offset,
                                     'page_title': page_title}
@@ -75,20 +77,20 @@ def sentence_to_link_contexts(page, sentence):
           continue
   return contexts
 
-def sentence_to_link_contexts_reducer(page, contexts_acc, sentence):
-  contexts = sentence_to_link_contexts(page, sentence)
+def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sentence):
+  contexts = sentence_to_link_contexts(redirects_lookup, page, sentence)
   if not _.is_empty(contexts):
     concat = lambda dest, src: dest + [src] if dest else [src]
     _.merge_with(contexts_acc, contexts, iteratee=concat)
   return contexts_acc
 
-def get_link_contexts(page):
+def get_link_contexts(redirects_lookup, page):
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections], [])
   sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables
-  return reduce(_.curry(sentence_to_link_contexts_reducer)(page), all_sentences, {})
+  return reduce(_.curry(sentence_to_link_contexts_reducer)(redirects_lookup, page), all_sentences, {})
 
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
   matches = u.match_all(to_match, page['plaintext'])
@@ -116,20 +118,20 @@ def _link_title_exact_match_heuristic(page, link_contexts):
 def _entity_for_each_page(page, link_contexts):
   return _.assign({page['title']: []}, link_contexts)
 
-def get_link_contexts_using_heuristics(page):
-  link_contexts = get_link_contexts(page)
+def get_link_contexts_using_heuristics(redirects_lookup, page):
+  link_contexts = get_link_contexts(redirects_lookup, page)
   link_contexts = _page_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _link_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _entity_for_each_page(page, link_contexts)
   return link_contexts
 
-def process_page(page, is_seed_page=False):
+def process_page(redirects_lookup, page, is_seed_page=False):
   document_info = {'source_id': page['pageID'],
                    'title': page['title'],
-                   'text': page['plaintext'],
+                   'text': clean_page_content(page['plaintext']),
                    'categories': page['categories'],
                    'is_seed_page': is_seed_page}
-  link_contexts = get_link_contexts_using_heuristics(page)
+  link_contexts = get_link_contexts_using_heuristics(redirects_lookup, page)
   entity_counts = _.map_values(link_contexts, len)
   return {'document_info': document_info,
           'link_contexts': link_contexts,

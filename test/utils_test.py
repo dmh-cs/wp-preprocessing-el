@@ -33,4 +33,4 @@ def test_create_batches():
     assert batch == range(i * 2, i * 2 + 2)
 
 def test_escape_title():
-  assert u.escape_title('List of countries and dependencies by population') == 'List_of_countries_and_dependencies_by_population'
+  assert u.escape_title('List of countries and dependencies by population') == 'List%20of%20countries%20and%20dependencies%20by%20population'
