@@ -25,14 +25,14 @@ def get_outlinks(processed_pages):
                    [])
   return set(link_names)
 
-def _process_pages(pages):
-  return [process_page(page) for page in pages if is_valid_page(page)]
+def _process_pages(pages, is_seed_page=False):
+  return [process_page(page, is_seed_page=is_seed_page) for page in pages if is_valid_page(page)]
 
 def _fetch_pages(pages_db, page_titles):
   return [pages_db.find_one({'_id': title}) for title in page_titles]
 
 def process_seed_pages(pages_db, seed_pages, depth=1):
-  processed_pages = _process_pages(seed_pages)
+  processed_pages = _process_pages(seed_pages, is_seed_page=True)
   latest_processed_pages = processed_pages
   visited_page_titles = set([processed_page['document_info']['title'] for processed_page in processed_pages])
   for layer in range(depth):
@@ -123,11 +123,12 @@ def get_link_contexts_using_heuristics(page):
   link_contexts = _entity_for_each_page(page, link_contexts)
   return link_contexts
 
-def process_page(page):
+def process_page(page, is_seed_page=False):
   document_info = {'source_id': page['pageID'],
                    'title': page['title'],
                    'text': page['plaintext'],
-                   'categories': page['categories']}
+                   'categories': page['categories'],
+                   'is_seed_page': is_seed_page}
   link_contexts = get_link_contexts_using_heuristics(page)
   entity_counts = _.map_values(link_contexts, len)
   return {'document_info': document_info,
