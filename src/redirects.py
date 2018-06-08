@@ -27,12 +27,9 @@ def _fetch_redirects_rows(cursor):
 def _build_redirects_lookup(redirects_rows):
   lookup = {}
   for row in redirects_rows:
-    from_page = row['redirect_from'].replace(b'_', b' ')
-    to_page = row['redirect_to'].replace(b'_', b' ')
-    if lookup.get(from_page):
-      lookup[from_page].append(to_page)
-    else:
-      lookup[from_page] = [to_page]
+    from_page = row['redirect_from'].replace(b'_', b' ').decode('utf-8')
+    to_page = row['redirect_to'].replace(b'_', b' ').decode('utf-8')
+    lookup[from_page] = to_page
   return lookup
 
 def get_redirects_lookup():

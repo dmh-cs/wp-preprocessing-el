@@ -69,10 +69,15 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
         try:
           mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link['text'])
           followed_redirect = redirects_lookup.get(link['page'])
-          contexts[followed_redirect or link['page']] = {'text': link['text'],
-                                    'sentence': sentence['text'],
-                                    'offset': mention_offset,
-                                    'page_title': page_title}
+          entity = followed_redirect or link['page']
+          context = {'text': link['text'],
+                     'sentence': sentence['text'],
+                     'offset': mention_offset,
+                     'page_title': page_title}
+          if contexts.get(entity):
+            contexts[entity].append(context)
+          else:
+            contexts[entity] = [context]
         except ValueError:
           continue
   return contexts
@@ -80,7 +85,7 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
 def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sentence):
   contexts = sentence_to_link_contexts(redirects_lookup, page, sentence)
   if not _.is_empty(contexts):
-    concat = lambda dest, src: dest + [src] if dest else [src]
+    concat = lambda dest, src: dest + src if dest else src
     _.merge_with(contexts_acc, contexts, iteratee=concat)
   return contexts_acc
 
@@ -110,7 +115,7 @@ def _page_title_exact_match_heuristic(page, link_contexts):
   return _apply_exact_match_heuristic(page, link_contexts, page['title'])
 
 def _link_title_exact_match_heuristic(page, link_contexts):
-  link_titles = _.flatten(_.map_values(link_contexts, 'page_title'))
+  link_titles = list(link_contexts.keys())
   return reduce(_.curry(_apply_exact_match_heuristic)(page),
                 link_titles,
                 link_contexts)
