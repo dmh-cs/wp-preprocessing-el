@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dumpster-dive": "^3.2.1"
+    "dumpster-dive": "^3.3.0"
   }
 }
