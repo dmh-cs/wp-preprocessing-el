@@ -2,7 +2,8 @@ import pydash as _
 from utils import build_cursor_generator
 
 def _entity_has_page(enwiki_cursor, entity):
-  enwiki_cursor.execute("SELECT 1 FROM page WHERE page_title = %s AND page_is_redirect = 0 and page_namespace = 0", entity)
+  enwiki_cursor.execute("SELECT 1 FROM page WHERE page_title = %s AND page_is_redirect = 0 and page_namespace = 0",
+                        entity.replace(' ', '_'))
   return enwiki_cursor.fetchone()
 
 def _insert_entity(cursor, entity):
