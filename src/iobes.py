@@ -62,6 +62,10 @@ def _splice_at(spans, index):
                    'Mention extends outside of detected tokens')
 
 def _is_mention_between_tokens(spans, span):
+  """Checks if a span occurs between tokens in `spans`. Only returns
+True if the span starts where a span ends in `spans` and no other
+element in `spans` starts at that index. And Vice Versa.
+  """
   mention_starts_at_token_end = any([span[0] == end for _, end in spans])
   mention_ends_at_token_start = any([span[1] == start for start, _ in spans])
   no_token_starts_at_mention_start = not any([span[0] == start for start, _ in spans])
@@ -70,6 +74,12 @@ def _is_mention_between_tokens(spans, span):
     (mention_ends_at_token_start and no_token_ends_at_mention_end)
 
 def _merge_spans(spans, spans_to_merge):
+  """Merges a list of spans into another by making splits in the
+elements of `spans`. If an element in `spans_to_merge` is between
+spans in `spans` then that span cannot be merged into `spans` in a
+consistent way, so we drop that element in the calling function
+scope.
+  """
   offsets = spans
   dropped_mention_indexes = []
   for i, new_span in enumerate(spans_to_merge):
@@ -85,6 +95,11 @@ def _merge_spans(spans, spans_to_merge):
   return offsets, _.uniq(dropped_mention_indexes)
 
 def get_page_iobes(page, mentions, mention_link_titles):
+  """Returns a list of triples/pairs describing the iobes of the page
+based on `mentions` and `mention_link_titles`. ASSUMES `mentions` and
+`mention_link_titles` are in the same order. An element is a pair if
+the token is not part of a mention, and is a triple otherwise.
+  """
   page_iobes = []
   page_content = page['content']
   page_tokens = []

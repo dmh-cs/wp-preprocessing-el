@@ -77,13 +77,14 @@ def insert_category_associations(cursor, processed_page, source):
       _insert_category(cursor, category)
       _insert_page_category(cursor, page_id, category_id, {'use_last_id': True})
 
-def insert_wp_page(cursor, processed_page, source):
-  cursor.execute("REPLACE INTO `pages` (`source_id`, `title`, `content`, `source`, `is_seed_page`) VALUES (%s, %s, %s, %s, %s)",
-                 (int(processed_page['document_info']['source_id']),
-                  processed_page['document_info']['title'],
-                  processed_page['document_info']['text'],
-                  source,
-                  processed_page['document_info']['is_seed_page'],))
+def insert_wp_page(enwiki_cursor, el_cursor, processed_page, source):
+  if _entity_has_page(enwiki_cursor, processed_page['document_info']['title']):
+    el_cursor.execute("REPLACE INTO `pages` (`source_id`, `title`, `content`, `source`, `is_seed_page`) VALUES (%s, %s, %s, %s, %s)",
+                      (int(processed_page['document_info']['source_id']),
+                       processed_page['document_info']['title'],
+                       processed_page['document_info']['text'],
+                       source,
+                       processed_page['document_info']['is_seed_page'],))
 
 def insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']

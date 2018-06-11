@@ -59,7 +59,7 @@ def main():
         print('Inserting processed pages')
         source = 'wikipedia'
         for processed_page in progressbar(processed_pages):
-          insert_wp_page(el_cursor, processed_page, source)
+          insert_wp_page(enwiki_cursor, el_cursor, processed_page, source)
           el_connection.commit()
           insert_category_associations(el_cursor, processed_page, source)
           el_connection.commit()

@@ -40,8 +40,11 @@ def process_seed_pages(pages_db, redirects_lookup, seed_pages, depth=1):
     print("Getting referenced pages")
     pages_referenced = get_outlinks(latest_processed_pages)
     page_titles_to_fetch = pages_referenced - visited_page_titles
-    print("Fetching and processing", len(page_titles_to_fetch), "pages")
-    for batch_num, titles_batch in progressbar(enumerate(u.create_batches(list(page_titles_to_fetch))), max_value=len(page_titles_to_fetch)):
+    batch_size = 1000
+    print("Fetching and processing", len(page_titles_to_fetch), "pages in", batch_size, "batches")
+    for batch_num, titles_batch in progressbar(enumerate(u.create_batches(list(page_titles_to_fetch),
+                                                                          batch_size=batch_size)),
+                                               max_value=len(page_titles_to_fetch)/batch_size):
       batch_pages_to_process = _fetch_pages(pages_db, titles_batch)
       latest_processed_pages = _process_pages(redirects_lookup, batch_pages_to_process)
       processed_pages += latest_processed_pages
