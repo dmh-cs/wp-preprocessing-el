@@ -42,7 +42,6 @@ def process_seed_pages(pages_db, redirects_lookup, seed_pages, depth=1):
     page_titles_to_fetch = pages_referenced - visited_page_titles
     print("Fetching and processing", len(page_titles_to_fetch), "pages")
     for batch_num, titles_batch in progressbar(enumerate(u.create_batches(list(page_titles_to_fetch))), max_value=len(page_titles_to_fetch)):
-      print("Batch num", batch_num)
       batch_pages_to_process = _fetch_pages(pages_db, titles_batch)
       latest_processed_pages = _process_pages(redirects_lookup, batch_pages_to_process)
       processed_pages += latest_processed_pages
@@ -69,7 +68,7 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
         try:
           mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link['text'])
           followed_redirect = redirects_lookup.get(link['page'])
-          entity = followed_redirect or link['page']
+          entity = (followed_redirect or link['page']).strip()
           context = {'text': link['text'],
                      'sentence': sentence['text'],
                      'offset': mention_offset,
