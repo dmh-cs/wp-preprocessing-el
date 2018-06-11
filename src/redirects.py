@@ -1,12 +1,11 @@
 import os
 import pymysql.cursors
 from dotenv import load_dotenv
-from pathlib import Path
 
 import utils as u
 
 def _connect_to_enwiki_db():
-  load_dotenv(dotenv_path=Path('db') / '.env')
+  load_dotenv(dotenv_path='.env')
   DATABASE_NAME = "enwiki"
   DATABASE_USER = os.getenv("DBUSER")
   DATABASE_PASSWORD = os.getenv("DBPASS")

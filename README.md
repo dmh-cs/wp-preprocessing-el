@@ -16,10 +16,10 @@
 - Start mysql if it isn't already running
 - `node dump_to_mongo.js` to parse the wikipedia dump and load mongo
 - `pip install --user -r requirements.txt` or however you like to install dependencies
-- Create `enwiki_db/.env` with the following variables updated for your system:
-
+- Create `.env` with the following variables updated for your system:
 ``` shell
-DBNAME=enwiki # desired mysql database name for wikipedia dumps
+ENWIKI_DBNAME=enwiki # desired mysql database name for wikipedia dumps
+EL_DBNAME=el # desired mysql database name
 DBUSER=root # mysql user to authenticate as
 DBPASS=pass # password for mysql user
 DBHOST=localhost # mysql host
@@ -27,14 +27,6 @@ DBHOST=localhost # mysql host
 - Load the wikipedia dumps:
   - `cd enwiki_db`
   - `make`
-- Create `db/.env` with the following variables updated for your system:
-
-``` shell
-DBNAME=el # desired mysql database name
-DBUSER=root # mysql user to authenticate as
-DBPASS=pass # password for mysql user
-DBHOST=localhost # mysql host
-```
 - Setup the database for creating the entity linking dataset:
   - `cd db`
   - `make`

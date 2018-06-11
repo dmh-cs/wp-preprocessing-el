@@ -1,6 +1,10 @@
 import pydash as _
 from utils import build_cursor_generator
 
+def _entity_has_page(enwiki_cursor, entity):
+  enwiki_cursor.execute("SELECT 1 FROM page WHERE page_title = %s AND page_is_redirect = 0", entity)
+  return enwiki_cursor.fetchone()
+
 def _insert_entity(cursor, entity):
   cursor.execute("INSERT INTO `entities` (`text`) VALUES (%s) ON DUPLICATE KEY UPDATE id=id",
                  (entity))
@@ -80,13 +84,16 @@ def insert_wp_page(cursor, processed_page, source):
                   source,
                   processed_page['document_info']['is_seed_page'],))
 
-def insert_link_contexts(cursor, processed_page, source):
+def insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']
-  page_id = _get_page_id_from_source_id(cursor, source, source_page_id)
+  page_id = _get_page_id_from_source_id(el_cursor, source, source_page_id)
   for entity, mentions in processed_page['link_contexts'].items():
-    entity_id = _insert_entity(cursor, entity)
-    for mention in mentions:
-      _insert_mention(cursor, mention, entity_id, page_id)
+    if _entity_has_page(enwiki_cursor, entity):
+      entity_id = _insert_entity(el_cursor, entity)
+      for mention in mentions:
+        _insert_mention(el_cursor, mention, entity_id, page_id)
+    else:
+      continue
 
 def get_page_and_mentions_by_entity(cursor, page_id):
   cursor.execute("SELECT * from pages WHERE id = (%s)", (page_id))
