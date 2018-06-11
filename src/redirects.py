@@ -20,7 +20,7 @@ def _connect_to_enwiki_db():
   return connection
 
 def _fetch_redirects_rows(cursor):
-  cursor.execute("select page.page_title as redirect_from, redirect.rd_title as redirect_to from page inner join redirect on redirect.rd_from = page.page_id")
+  cursor.execute("select page.page_title as redirect_from, redirect.rd_title as redirect_to from page inner join redirect on redirect.rd_from = page.page_id where page.page_namespace = 0")
   return u.build_cursor_generator(cursor)
 
 def _build_redirects_lookup(redirects_rows):
