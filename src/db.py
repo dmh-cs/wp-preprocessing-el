@@ -1,7 +1,7 @@
 import pydash as _
 from utils import build_cursor_generator
 
-def _entity_has_page(enwiki_cursor, entity):
+def entity_has_page(enwiki_cursor, entity):
   enwiki_cursor.execute("SELECT 1 FROM page WHERE page_title = %s AND page_is_redirect = 0 and page_namespace = 0",
                         entity.replace(' ', '_'))
   return enwiki_cursor.fetchone()
@@ -77,20 +77,19 @@ def insert_category_associations(cursor, processed_page, source):
       _insert_category(cursor, category)
       _insert_page_category(cursor, page_id, category_id, {'use_last_id': True})
 
-def insert_wp_page(enwiki_cursor, el_cursor, processed_page, source):
-  if _entity_has_page(enwiki_cursor, processed_page['document_info']['title']):
-    el_cursor.execute("REPLACE INTO `pages` (`source_id`, `title`, `content`, `source`, `is_seed_page`) VALUES (%s, %s, %s, %s, %s)",
-                      (int(processed_page['document_info']['source_id']),
-                       processed_page['document_info']['title'],
-                       processed_page['document_info']['text'],
-                       source,
-                       processed_page['document_info']['is_seed_page'],))
+def insert_wp_page(cursor, processed_page, source):
+  cursor.execute("REPLACE INTO `pages` (`source_id`, `title`, `content`, `source`, `is_seed_page`) VALUES (%s, %s, %s, %s, %s)",
+                 (int(processed_page['document_info']['source_id']),
+                  processed_page['document_info']['title'],
+                  processed_page['document_info']['text'],
+                  source,
+                  processed_page['document_info']['is_seed_page'],))
 
 def insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']
   page_id = _get_page_id_from_source_id(el_cursor, source, source_page_id)
   for entity, mentions in processed_page['link_contexts'].items():
-    if _entity_has_page(enwiki_cursor, entity):
+    if entity_has_page(enwiki_cursor, entity):
       entity_id = _insert_entity(el_cursor, entity)
       for mention in mentions:
         _insert_mention(el_cursor, mention, entity_id, page_id)

@@ -7,7 +7,7 @@ from pymongo import MongoClient
 import sys
 sys.path.append('./src')
 
-from db import insert_wp_page, insert_category_associations, insert_link_contexts
+from db import insert_wp_page, insert_category_associations, insert_link_contexts, entity_has_page
 from process_pages import process_seed_pages
 from redirects import get_redirects_lookup
 
@@ -59,7 +59,9 @@ def main():
         print('Inserting processed pages')
         source = 'wikipedia'
         for processed_page in progressbar(processed_pages):
-          insert_wp_page(enwiki_cursor, el_cursor, processed_page, source)
+          if not entity_has_page(enwiki_cursor, processed_page['document_info']['title']):
+            continue
+          insert_wp_page(el_cursor, processed_page, source)
           el_connection.commit()
           insert_category_associations(el_cursor, processed_page, source)
           el_connection.commit()
