@@ -13,7 +13,7 @@ up:
 	@echo '-- Loading page table --'
 	@echo '-------------------'
 	@echo ''
-	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(ENWIKI_DBNAME)" < enwiki-20180520-page.sql
+	pv enwiki-20180520-page.sql.gz | gunzip | mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(ENWIKI_DBNAME)"
 
 	@echo ''
 	@echo '-------------------'
@@ -27,7 +27,7 @@ up:
 	@echo '-- Creating page title index --'
 	@echo '-------------------'
 	@echo ''
-	pv enwiki-20180520-page.sql.gz | gunzip | mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(ENWIKI_DBNAME)"
+	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(ENWIKI_DBNAME)" < create_page_title_index.sql
 
 down:
 	@echo ''
