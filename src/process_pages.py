@@ -3,7 +3,7 @@ import pydash as _
 from progressbar import progressbar
 
 import utils as u
-from data_cleaners import clean_page_content
+from data_cleaners import clean_page
 
 def is_valid_page(page):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
@@ -133,12 +133,13 @@ def get_link_contexts_using_heuristics(redirects_lookup, page):
   return link_contexts
 
 def process_page(redirects_lookup, page, is_seed_page=False):
-  document_info = {'source_id': page['pageID'],
-                   'title': page['title'],
-                   'text': clean_page_content(page['plaintext']),
-                   'categories': page['categories'],
+  cleaned_page = clean_page(page)
+  document_info = {'source_id': cleaned_page['pageID'],
+                   'title': cleaned_page['title'],
+                   'text': cleaned_page['plaintext'],
+                   'categories': cleaned_page['categories'],
                    'is_seed_page': is_seed_page}
-  link_contexts = get_link_contexts_using_heuristics(redirects_lookup, page)
+  link_contexts = get_link_contexts_using_heuristics(redirects_lookup, cleaned_page)
   entity_counts = _.map_values(link_contexts, len)
   return {'document_info': document_info,
           'link_contexts': link_contexts,
