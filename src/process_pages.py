@@ -12,6 +12,15 @@ def is_valid_page(page):
   else:
     return False
 
+def is_valid_implicit_link(enwiki_page_title_lookup, nonunique_page_titles, link):
+  flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
+  is_implicit_link = link.get('page') and (link.get('text') is None)
+  lower_cleaned_title = link['page'].replace('_', ' ').lower() if is_implicit_link else None
+  is_unique_page_title = lower_cleaned_title not in nonunique_page_titles if link.get('page') else False
+  is_not_image_link = (not any([_.has_substr(link['page'].lower(), flag) for flag in flags])) if link.get('page') else False
+  is_real_page_title = enwiki_page_title_lookup.get(lower_cleaned_title)
+  return is_implicit_link and is_unique_page_title and is_not_image_link and is_real_page_title
+
 def is_valid_link(link):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
   if link and link.get('text') and link.get('page'):
@@ -26,14 +35,31 @@ def get_outlinks(processed_pages):
                    [])
   return set(link_names)
 
-def _process_pages(redirects_lookup, pages, is_seed_page=False):
-  return [process_page(redirects_lookup, page, is_seed_page=is_seed_page) for page in pages if is_valid_page(page)]
+def _process_pages(enwiki_page_title_lookup,
+                   nonunique_page_titles,
+                   redirects_lookup,
+                   pages,
+                   is_seed_page=False):
+  return [process_page(enwiki_page_title_lookup,
+                       nonunique_page_titles,
+                       redirects_lookup,
+                       page,
+                       is_seed_page=is_seed_page) for page in pages if is_valid_page(page)]
 
 def _fetch_pages(pages_db, page_titles):
   return [pages_db.find_one({'_id': title}) for title in page_titles]
 
-def process_seed_pages(pages_db, redirects_lookup, seed_pages, depth=1):
-  processed_pages = _process_pages(redirects_lookup, seed_pages, is_seed_page=True)
+def process_seed_pages(pages_db,
+                       enwiki_page_title_lookup,
+                       nonunique_page_titles,
+                       redirects_lookup,
+                       seed_pages,
+                       depth=1):
+  processed_pages = _process_pages(enwiki_page_title_lookup,
+                                   nonunique_page_titles,
+                                   redirects_lookup,
+                                   seed_pages,
+                                   is_seed_page=True)
   latest_processed_pages = processed_pages
   visited_page_titles = set([processed_page['document_info']['title'] for processed_page in processed_pages])
   for layer in range(depth):
@@ -46,7 +72,10 @@ def process_seed_pages(pages_db, redirects_lookup, seed_pages, depth=1):
                                                                           batch_size=batch_size)),
                                                max_value=int(len(page_titles_to_fetch)/batch_size)):
       batch_pages_to_process = _fetch_pages(pages_db, titles_batch)
-      latest_processed_pages = _process_pages(redirects_lookup, batch_pages_to_process)
+      latest_processed_pages = _process_pages(enwiki_page_title_lookup,
+                                              nonunique_page_titles,
+                                              redirects_lookup,
+                                              batch_pages_to_process)
       processed_pages += latest_processed_pages
     visited_page_titles = visited_page_titles.union(pages_referenced)
   return processed_pages
@@ -62,17 +91,25 @@ def get_mention_offset(page_text, sentence_text, mention):
     raise ValueError('Mention not found in sentence')
   return sentence_page_offset + mention_sentence_offset
 
-def sentence_to_link_contexts(redirects_lookup, page, sentence):
+def sentence_to_link_contexts(enwiki_page_title_lookup,
+                              nonunique_page_titles,
+                              redirects_lookup,
+                              page,
+                              sentence):
   page_title = page['title']
   contexts = {}
   if sentence.get('links'):
     for link in sentence['links']:
-      if link.get('page') and is_valid_link(link):
+      is_implicit_link = is_valid_implicit_link(enwiki_page_title_lookup, nonunique_page_titles, link)
+      if is_valid_link(link) or is_implicit_link:
+        link_text = link['page'] if is_implicit_link else link['text']
+        lower_cleaned_title = link['page'].replace('_', ' ').lower() if is_implicit_link else None
+        link_destination = enwiki_page_title_lookup[lower_cleaned_title] if is_implicit_link else link['page']
         try:
-          mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link['text'])
-          followed_redirect = redirects_lookup.get(link['page'])
-          entity = (followed_redirect or link['page']).strip()
-          context = {'text': link['text'],
+          mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link_text)
+          followed_redirect = redirects_lookup.get(link_destination)
+          entity = (followed_redirect or link_destination).strip()
+          context = {'text': link_text,
                      'sentence': sentence['text'],
                      'offset': mention_offset,
                      'page_title': page_title}
@@ -84,20 +121,34 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
           continue
   return contexts
 
-def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sentence):
-  contexts = sentence_to_link_contexts(redirects_lookup, page, sentence)
+def sentence_to_link_contexts_reducer(enwiki_page_title_lookup,
+                                      nonunique_page_titles,
+                                      redirects_lookup,
+                                      page,
+                                      contexts_acc,
+                                      sentence):
+  contexts = sentence_to_link_contexts(enwiki_page_title_lookup,
+                                       nonunique_page_titles,
+                                       redirects_lookup,
+                                       page,
+                                       sentence)
   if not _.is_empty(contexts):
     concat = lambda dest, src: dest + src if dest else src
     _.merge_with(contexts_acc, contexts, iteratee=concat)
   return contexts_acc
 
-def get_link_contexts(redirects_lookup, page):
+def get_link_contexts(enwiki_page_title_lookup, nonunique_page_titles, redirects_lookup, page):
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections], [])
   sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables
-  return reduce(_.curry(sentence_to_link_contexts_reducer)(redirects_lookup, page), all_sentences, {})
+  return reduce(_.curry(sentence_to_link_contexts_reducer)(enwiki_page_title_lookup,
+                                                           nonunique_page_titles,
+                                                           redirects_lookup,
+                                                           page),
+                all_sentences,
+                {})
 
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
   matches = u.match_all(to_match, page['plaintext'])
@@ -125,21 +176,30 @@ def _link_title_exact_match_heuristic(page, link_contexts):
 def _entity_for_each_page(page, link_contexts):
   return _.assign({page['title']: []}, link_contexts)
 
-def get_link_contexts_using_heuristics(redirects_lookup, page):
-  link_contexts = get_link_contexts(redirects_lookup, page)
+def get_link_contexts_using_heuristics(enwiki_page_title_lookup,
+                                       nonunique_page_titles,
+                                       redirects_lookup,
+                                       page):
+  link_contexts = get_link_contexts(enwiki_page_title_lookup,
+                                    nonunique_page_titles,
+                                    redirects_lookup,
+                                    page)
   link_contexts = _page_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _link_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _entity_for_each_page(page, link_contexts)
   return link_contexts
 
-def process_page(redirects_lookup, page, is_seed_page=False):
+def process_page(enwiki_page_title_lookup, nonunique_page_titles, redirects_lookup, page, is_seed_page=False):
   cleaned_page = clean_page(page)
   document_info = {'source_id': cleaned_page['pageID'],
                    'title': cleaned_page['title'],
                    'text': cleaned_page['plaintext'],
                    'categories': cleaned_page['categories'],
                    'is_seed_page': is_seed_page}
-  link_contexts = get_link_contexts_using_heuristics(redirects_lookup, cleaned_page)
+  link_contexts = get_link_contexts_using_heuristics(enwiki_page_title_lookup,
+                                                     nonunique_page_titles,
+                                                     redirects_lookup,
+                                                     cleaned_page)
   entity_counts = _.map_values(link_contexts, len)
   return {'document_info': document_info,
           'link_contexts': link_contexts,
