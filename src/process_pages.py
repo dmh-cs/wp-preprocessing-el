@@ -12,13 +12,13 @@ def is_valid_page(page):
   else:
     return False
 
-def is_valid_implicit_link(enwiki_page_title_lookup, nonunique_page_titles, link):
+def is_valid_implicit_link(enwiki_page_title_lookup, nonunique_page_titles, redirects_lookup, link):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
   is_implicit_link = link.get('page') and (link.get('text') is None)
   lower_cleaned_title = link['page'].replace('_', ' ').lower() if is_implicit_link else None
   is_unique_page_title = lower_cleaned_title not in nonunique_page_titles if link.get('page') else False
   is_not_image_link = (not any([_.has_substr(link['page'].lower(), flag) for flag in flags])) if link.get('page') else False
-  is_real_page_title = enwiki_page_title_lookup.get(lower_cleaned_title)
+  is_real_page_title = enwiki_page_title_lookup.get(lower_cleaned_title) or lower_cleaned_title in redirects_lookup
   return is_implicit_link and is_unique_page_title and is_not_image_link and is_real_page_title
 
 def is_valid_link(link):
@@ -91,6 +91,15 @@ def get_mention_offset(page_text, sentence_text, mention):
     raise ValueError('Mention not found in sentence')
   return sentence_page_offset + mention_sentence_offset
 
+def _get_link_destination(enwiki_page_title_lookup,
+                          is_implicit_link,
+                          link):
+  lower_cleaned_title = link['page'].replace('_', ' ').lower() if is_implicit_link else None
+  if is_implicit_link and lower_cleaned_title in enwiki_page_title_lookup:
+    return enwiki_page_title_lookup[lower_cleaned_title]
+  else:
+    return link['page']
+
 def sentence_to_link_contexts(enwiki_page_title_lookup,
                               nonunique_page_titles,
                               redirects_lookup,
@@ -100,11 +109,13 @@ def sentence_to_link_contexts(enwiki_page_title_lookup,
   contexts = {}
   if sentence.get('links'):
     for link in sentence['links']:
-      is_implicit_link = is_valid_implicit_link(enwiki_page_title_lookup, nonunique_page_titles, link)
+      is_implicit_link = is_valid_implicit_link(enwiki_page_title_lookup,
+                                                nonunique_page_titles,
+                                                redirects_lookup,
+                                                link)
       if is_valid_link(link) or is_implicit_link:
         link_text = link['page'] if is_implicit_link else link['text']
-        lower_cleaned_title = link['page'].replace('_', ' ').lower() if is_implicit_link else None
-        link_destination = enwiki_page_title_lookup[lower_cleaned_title] if is_implicit_link else link['page']
+        link_destination = _get_link_destination(enwiki_page_title_lookup, is_implicit_link, link)
         try:
           mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link_text)
           followed_redirect = redirects_lookup.get(link_destination)

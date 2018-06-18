@@ -33,6 +33,8 @@ def _build_redirects_lookup(redirects_rows):
     from_page = row['redirect_from'].replace('_', ' ')
     to_page = row['redirect_to'].replace('_', ' ')
     lookup[from_page] = to_page
+    if from_page.lower() not in lookup:
+      lookup[from_page.lower()] = to_page
   return lookup
 
 def get_redirects_lookup():
