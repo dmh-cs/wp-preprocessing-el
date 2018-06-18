@@ -150,14 +150,25 @@ def get_link_contexts(enwiki_page_title_lookup, nonunique_page_titles, redirects
                 all_sentences,
                 {})
 
+def _mention_overlaps(mentions, mention_to_check):
+  mention_spans = [[mention['offset'],
+                    mention['offset'] + len(mention['text'])] for mention in mentions]
+  start = mention_to_check['offset']
+  end = mention_to_check['offset'] + len(mention_to_check['text'])
+  starts_inside_a_mention = any([start >= span[0] and start <= span[1] for span in mention_spans])
+  ends_inside_a_mention = any([end >= span[0] and end <= span[1] for span in mention_spans])
+  return starts_inside_a_mention or ends_inside_a_mention
+
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
   matches = u.match_all(to_match, page['plaintext'])
+  mentions = _.flatten(link_contexts.values())
   link_context = {entity: [{'text': to_match,
                             'offset': match_index,
                             'page_title': page['title']} for match_index in matches]}
+  filtered_link_context = {entity: [mention for mention in link_context[entity] if not _mention_overlaps(mentions, mention)]}
   concat = lambda dest, src: _.uniq_by(dest + src, 'offset') if dest else src
-  if not _.is_empty(link_context[entity]):
-    return _.merge_with(link_contexts, link_context, iteratee=concat)
+  if not _.is_empty(filtered_link_context[entity]):
+    return _.merge_with(link_contexts, filtered_link_context, iteratee=concat)
   else:
     return link_contexts
 

@@ -18,6 +18,18 @@ def test__label_iobes():
   assert iobes._label_iobes(mention_spans, (8, 15)) == 'E'
   assert iobes._label_iobes(mention_spans, (0, 2)) == 'B'
 
+def test_get_page_iobes_overlapping_matches():
+  page = {'source_id': 0, 'title': 'Other', 'content': 'some other text and my stuff'}
+  mentions = [{'text': 'some other text', 'offset': 0, 'page_title': 'Other'},
+              {'text': 'my', 'offset': 20, 'page_title': 'My page'}]
+  mention_link_titles = ['Other', 'My page']
+  assert [[['some', 'Other', 'B'],
+           ['other', 'Other', 'I'],
+           ['text', 'Other', 'E'],
+           ['and', 'O'],
+           ['my', 'My%20page', 'S'],
+           ['stuff', 'O']]] == iobes.get_page_iobes(page, mentions, mention_link_titles)
+
 def test_get_page_iobes():
   with open('test/fixtures/parade_page_db.json') as f:
     parade_page = json.load(f)
@@ -29,5 +41,4 @@ def test_get_page_iobes():
                                    lambda title_mention: title_mention[1]['offset'])
   mentions = _.flat_map(contexts, _.last)
   mention_link_titles = list(map(_.head, contexts))
-  print(iobes.get_page_iobes(parade_page, mentions, mention_link_titles))
   assert parade_iobes == iobes.get_page_iobes(parade_page, mentions, mention_link_titles)

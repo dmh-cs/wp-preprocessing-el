@@ -4,6 +4,12 @@ from unittest.mock import Mock
 
 import process_pages as pp
 
+def test__mention_overlaps():
+  mentions = [{'text': 'some other text', 'offset': 0, 'page_title': 'Other'},
+              {'text': 'my', 'offset': 20, 'page_title': 'My page'}]
+  mention = {'text': 'other', 'offset': 5, 'page_title': 'Other'}
+  assert pp._mention_overlaps(mentions, mention)
+
 def test_process_page():
   with open('test/fixtures/parade_page.json') as f:
     parade_page = json.load(f)
@@ -37,6 +43,32 @@ def test_process_page_with_implicit_links():
                                                        'page_title': 'My page'}]}
   assert processed_page['entity_counts'] == {'My page': 0,
                                              'Some': 1}
+
+def test_process_page_with_overlapping_mentions():
+  page = {'_id': 'Other', 'pageID': 0, 'categories': [], 'title': 'Other',
+          'plaintext': 'some Other text and my stuff',
+          'sections': [{'sentences': [{'text': 'some Other text and my stuff',
+                                       'links': [{'page': 'Other', 'text': 'some Other text'},
+                                                 {'page': 'My page', 'text': 'my'}]}]}]}
+  redirects_lookup = {}
+  enwiki_page_title_lookup = {}
+  nonunique_page_titles = set()
+  processed_page = pp.process_page(enwiki_page_title_lookup,
+                                   nonunique_page_titles,
+                                   redirects_lookup,
+                                   page)
+  assert processed_page['document_info']['title'] == 'Other'
+  assert processed_page['document_info']['text'] == 'some Other text and my stuff'
+  assert processed_page['link_contexts'] == {'Other': [{'text': 'some Other text',
+                                                        'sentence': 'some Other text and my stuff',
+                                                        'offset': 0,
+                                                        'page_title': 'Other'}],
+                                             'My page': [{'text': 'my',
+                                                          'sentence': 'some Other text and my stuff',
+                                                          'offset': 20,
+                                                          'page_title': 'Other'}]}
+  assert processed_page['entity_counts'] == {'Other': 1,
+                                             'My page': 1}
 
 def test_process_page_with_redirects():
   with open('test/fixtures/parade_page.json') as f:
