@@ -65,7 +65,7 @@ def get_page_title_lookup_and_nonunique_page_titles():
         if lower_cleaned_title in page_title_lookup:
           nonunique_page_titles.add(lower_cleaned_title)
         else:
-          page_title_lookup[lower_cleaned_title] = page['page_title']
+          page_title_lookup[lower_cleaned_title] = page['page_title'].replace('_', ' ')
       for lower_cleaned_title in nonunique_page_titles:
         page_title_lookup.pop(lower_cleaned_title)
   finally:

@@ -7,3 +7,4 @@ node_modules
 *wiki*.sql
 *.prof
 *.iobes
+/iobes.tar.gz
