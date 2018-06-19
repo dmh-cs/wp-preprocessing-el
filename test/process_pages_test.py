@@ -6,18 +6,12 @@ import process_pages as pp
 
 def test_sentence_to_link_contexts():
   redirects_lookup = {'some text': 'Some Words'}
-  enwiki_page_title_lookup = {}
-  nonunique_page_titles = set()
   page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text',
           'sections': [{'sentences': [{'text': 'some text', 'links': [{'page': 'some text'}]}]}]}
   sentence = {'text': 'some text', 'links': [{'page': 'some text'}]}
   link_contexts = {'Some Words':
                    [{'text': 'some text', 'offset': 0, 'page_title': 'My page', 'sentence': 'some text'}]}
-  assert link_contexts == pp.sentence_to_link_contexts(enwiki_page_title_lookup,
-                                                       nonunique_page_titles,
-                                                       redirects_lookup,
-                                                       page,
-                                                       sentence)
+  assert link_contexts == pp.sentence_to_link_contexts(redirects_lookup, page, sentence)
 
 def test__mention_overlaps():
   mentions = [{'text': 'some other text', 'offset': 0, 'page_title': 'Other'},
@@ -31,7 +25,7 @@ def test_process_page():
   with open('test/fixtures/parade_page_contexts.json') as f:
     parade_page_contexts = json.load(f)
   redirects_lookup = {}
-  processed_page = pp.process_page({}, set(), redirects_lookup, parade_page)
+  processed_page = pp.process_page(redirects_lookup, parade_page)
   assert processed_page['document_info']['title'] == parade_page['title']
   assert processed_page['document_info']['text'] == parade_page['plaintext']
   assert processed_page['document_info']['categories'] == parade_page['categories']
@@ -42,12 +36,7 @@ def test_process_page_with_implicit_links():
   page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text',
           'sections': [{'sentences': [{'text': 'some text', 'links': [{'page': 'some'}]}]}]}
   redirects_lookup = {}
-  enwiki_page_title_lookup = {'some': 'Some'}
-  nonunique_page_titles = set()
-  processed_page = pp.process_page(enwiki_page_title_lookup,
-                                   nonunique_page_titles,
-                                   redirects_lookup,
-                                   page)
+  processed_page = pp.process_page(redirects_lookup, page)
   assert processed_page['document_info']['title'] == 'My page'
   assert processed_page['document_info']['text'] == 'some text'
   assert processed_page['document_info']['categories'] == []
@@ -66,12 +55,7 @@ def test_process_page_with_overlapping_mentions():
                                        'links': [{'page': 'Other', 'text': 'some Other text'},
                                                  {'page': 'My page', 'text': 'my'}]}]}]}
   redirects_lookup = {}
-  enwiki_page_title_lookup = {}
-  nonunique_page_titles = set()
-  processed_page = pp.process_page(enwiki_page_title_lookup,
-                                   nonunique_page_titles,
-                                   redirects_lookup,
-                                   page)
+  processed_page = pp.process_page(redirects_lookup, page)
   assert processed_page['document_info']['title'] == 'Other'
   assert processed_page['document_info']['text'] == 'some Other text and my stuff'
   assert processed_page['link_contexts'] == {'Other': [{'text': 'some Other text',
@@ -91,7 +75,7 @@ def test_process_page_with_redirects():
   with open('test/fixtures/parade_page_contexts.json') as f:
     parade_page_contexts = json.load(f)
   redirects_lookup = {"Fort de Goede Hoop": "Kaapstad"}
-  processed_page = pp.process_page({}, set(), redirects_lookup, parade_page)
+  processed_page = pp.process_page(redirects_lookup, parade_page)
   assert processed_page['document_info']['title'] == parade_page['title']
   assert processed_page['document_info']['text'] == parade_page['plaintext']
   assert processed_page['document_info']['categories'] == parade_page['categories']
@@ -115,9 +99,9 @@ def test_process_seed_pages():
   redirects_lookup = {}
   pages_db = Mock()
   pages_db.find_one = lambda query: pages[query['_id']]
-  depth_0 = pp.process_seed_pages(pages_db, {}, set(), redirects_lookup, [parade_small_page], depth=0)
-  depth_1 = pp.process_seed_pages(pages_db, {}, set(), redirects_lookup, [parade_small_page], depth=1)
-  depth_2 = pp.process_seed_pages(pages_db, {}, set(), redirects_lookup, [parade_small_page], depth=2)
+  depth_0 = pp.process_seed_pages(pages_db, redirects_lookup, [parade_small_page], depth=0)
+  depth_1 = pp.process_seed_pages(pages_db, redirects_lookup, [parade_small_page], depth=1)
+  depth_2 = pp.process_seed_pages(pages_db, redirects_lookup, [parade_small_page], depth=2)
   assert _.is_equal(set([page['document_info']['title'] for page in depth_0]),
                     {'Parade'})
   assert _.is_equal(set([page['document_info']['title'] for page in depth_1]),
