@@ -69,7 +69,7 @@ def get_mention_offset(page_text, sentence_text, mention):
 def _get_entity(redirects_lookup, link):
   link_destination = link['page']
   followed_redirect = redirects_lookup.get(link_destination)
-  return _.upper_first((followed_redirect or link_destination).strip())
+  return _.upper_first(followed_redirect or link_destination)
 
 def sentence_to_link_contexts(redirects_lookup, page, sentence):
   page_title = page['title']

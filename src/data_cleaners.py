@@ -18,14 +18,16 @@ def _clean_sentence(sentence):
   if sentence.get('links'):
     cleaned_links = []
     for link in sentence['links']:
+      cleaned_link = None
       if link.get('text'):
         cleaned_text = clean_page_content(link.get('text'))
         if cleaned_sentence['text'].find(cleaned_text) != -1:
           # keep this link if the cleaned text still contains the anchor text
-          cleaned_links.append(_.assign({}, link, {'text': cleaned_text}))
-      elif link.get('page') and cleaned_sentence['text'].find(link['page']) != -1:
-        # keep the link if it is an implicit link (only contains a `page` property)
-        cleaned_links.append(link)
+          cleaned_link = _.assign({}, link, {'text': cleaned_text})
+      if link.get('page') and cleaned_sentence['text'].find(link['page']) != -1:
+        cleaned_link = _.assign({}, link, {'page': link['page'].strip()})
+      if cleaned_link:
+        cleaned_links.append(cleaned_link)
     cleaned_sentence['links'] = cleaned_links
   return cleaned_sentence
 
