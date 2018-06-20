@@ -18,6 +18,7 @@ CREATE OR REPLACE VIEW entity_by_page AS
 
 CREATE OR REPLACE VIEW entity_mentions_text AS
        SELECT m.text AS mention,
+              m.offset AS offset,
               m.id AS mention_id,
               m.page_id AS page_id,
               e.text AS entity,
