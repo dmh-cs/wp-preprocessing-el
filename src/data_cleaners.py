@@ -1,5 +1,6 @@
 import re
 import pydash as _
+from functools import reduce
 
 def _drop_template_parens(page_content):
   cleaned = re.sub(r'\( *[,;.][^()]* *\)', '', page_content)
@@ -13,22 +14,43 @@ def _drop_reference_tag(page_content):
 def clean_page_content(page_content):
   return _drop_template_parens(_drop_reference_tag(page_content))
 
+def _cleaned_link_is_valid(sentence_text, cleaned_link):
+  link_text_is_in_page = 'text' in cleaned_link and sentence_text.find(cleaned_link['text']) != -1
+  link_page_is_in_page = 'page' in cleaned_link and sentence_text.find(cleaned_link['page']) != -1
+  link_mention_is_in_page = link_text_is_in_page or (link_page_is_in_page and 'text' not in cleaned_link)
+  link_mention_is_blank = _.is_empty(cleaned_link['text'].strip()) if 'text' in cleaned_link else False
+  return not link_mention_is_blank and link_mention_is_in_page
+
+def _sentence_clean_link_text(link):
+  if link.get('text'):
+    cleaned_text = clean_page_content(link.get('text')).strip()
+    return _.assign({}, link, {'text': cleaned_text})
+  else:
+    return link
+
+def _sentence_clean_link_page(link):
+  if link.get('page'):
+    return _.assign({}, link, {'page': link['page'].strip()})
+  else:
+    return link
+
+def _sentence_clean_reducer(sentence_text, cleaned_links, link):
+  link_has_content = 'text' in link or 'page' in link
+  if link_has_content:
+    cleaned_link = _sentence_clean_link_page(_sentence_clean_link_text(link))
+    if _cleaned_link_is_valid(sentence_text, cleaned_link):
+      return cleaned_links + [cleaned_link]
+    else:
+      return cleaned_links
+  else:
+    return cleaned_links
+
 def _clean_sentence(sentence):
   cleaned_sentence = _.assign({}, sentence, {'text': clean_page_content(sentence['text'])})
   if sentence.get('links'):
-    cleaned_links = []
-    for link in sentence['links']:
-      cleaned_link = None
-      if link.get('text'):
-        cleaned_text = clean_page_content(link.get('text'))
-        if cleaned_sentence['text'].find(cleaned_text) != -1:
-          # keep this link if the cleaned text still contains the anchor text
-          cleaned_link = _.assign({}, link, {'text': cleaned_text})
-      if link.get('page') and cleaned_sentence['text'].find(link['page']) != -1:
-        cleaned_link = _.assign({}, link, {'page': link['page'].strip()})
-      if cleaned_link:
-        cleaned_links.append(cleaned_link)
-    cleaned_sentence['links'] = cleaned_links
+    cleaned_sentence['links'] = reduce(_.curry(_sentence_clean_reducer)(cleaned_sentence['text']),
+                                       sentence['links'],
+                                       [])
   return cleaned_sentence
 
 def _clean_table(table):
