@@ -3,6 +3,7 @@ import pymysql.cursors
 from dotenv import load_dotenv
 from progressbar import progressbar
 from pymongo import MongoClient
+import json
 
 import sys
 sys.path.append('./src')
@@ -10,6 +11,9 @@ sys.path.append('./src')
 from db import insert_wp_page, insert_category_associations, insert_link_contexts, entity_has_page
 from process_pages import process_seed_pages
 from lookups import get_redirects_lookup
+
+with open('./data/initial_seed.json') as f:
+  ids_to_fetch = json.load(f)
 
 
 def main():
@@ -25,9 +29,9 @@ def main():
   print('Reading from mongodb db', dbname)
   db = client[dbname]
   pages_db = db['pages']
-  num_seed_pages = 10000
+  num_seed_pages = len(ids_to_fetch)
   print('Fetching WP pages using', num_seed_pages, 'seed pages')
-  initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
+  initial_pages_to_fetch = list(pages_db.find({'_id': {'$in': ids_to_fetch}}))
   print('Building redirects lookup')
   redirects_lookup = get_redirects_lookup()
   print('Processing WP pages')
