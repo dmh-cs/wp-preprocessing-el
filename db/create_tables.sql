@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS pages (
 `content` MEDIUMTEXT CHARACTER SET utf8mb4 NOT NULL,
 `source` varchar(255) NOT NULL,
 `is_seed_page` boolean NOT NULL,
+`is_disambiguation_page` boolean NOT NULL,
 PRIMARY KEY (`id`),
 INDEX (`source_id`),
 UNIQUE KEY (`source`, `source_id`)

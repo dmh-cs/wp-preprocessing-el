@@ -1,6 +1,7 @@
 {
     "_id": "Parade",
     "title": "Parade",
+    "isDisambiguation": false,
     "categories": [
         "Geboue en strukture in Kaapstad",
         "Monumente en gedenkwaardighede in Suid-Afrika"

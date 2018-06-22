@@ -6,7 +6,7 @@ import process_pages as pp
 
 def test_sentence_to_link_contexts():
   redirects_lookup = {'some text': 'Some Words'}
-  page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text',
+  page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text', 'isDisambiguation': False,
           'sections': [{'sentences': [{'text': 'some text', 'links': [{'page': 'some text'}]}]}]}
   sentence = {'text': 'some text', 'links': [{'page': 'some text'}]}
   link_contexts = {'Some Words':
@@ -33,7 +33,7 @@ def test_process_page():
   assert processed_page['entity_counts'] == _.map_values(parade_page_contexts, len)
 
 def test_process_page_with_implicit_links():
-  page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text',
+  page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text', 'isDisambiguation': False,
           'sections': [{'sentences': [{'text': 'some text', 'links': [{'page': 'some'}]}]}]}
   redirects_lookup = {}
   processed_page = pp.process_page(redirects_lookup, page)
@@ -49,7 +49,7 @@ def test_process_page_with_implicit_links():
                                              'Some': 1}
 
 def test_process_page_with_overlapping_mentions():
-  page = {'_id': 'Other', 'pageID': 0, 'categories': [], 'title': 'Other',
+  page = {'_id': 'Other', 'pageID': 0, 'categories': [], 'title': 'Other', 'isDisambiguation': False,
           'plaintext': 'some Other text and my stuff',
           'sections': [{'sentences': [{'text': 'some Other text and my stuff',
                                        'links': [{'page': 'Other', 'text': 'some Other text'},

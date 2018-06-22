@@ -160,6 +160,7 @@ def process_page(redirects_lookup, page, is_seed_page=False):
                    'title': cleaned_page['title'],
                    'text': cleaned_page['plaintext'],
                    'categories': cleaned_page['categories'],
+                   'is_disambiguation_page': cleaned_page['isDisambiguation'],
                    'is_seed_page': is_seed_page}
   link_contexts = get_link_contexts_using_heuristics(redirects_lookup, cleaned_page)
   entity_counts = _.map_values(link_contexts, len)

@@ -6,11 +6,16 @@ console.log('Loading wikipedia dump at', dump_path, 'to mongodb db', dbname);
 dumpster({file: dump_path,
           db: dbname,
           depth: false,
-          plaintext: true,
-          infoboxes: false,
-          citations: false,
-          sections: true,
-          images: false,
-          categories: true,
-          links: true
+          skip_redirects: true,
+          skip_disambig: false,
+          custom: function(doc) {
+	      return {
+		  _id: doc.title(),
+		  title: doc.title(),
+		  categories: doc.categories(),
+                  isDisambiguation: doc.isDisambiguation(),
+                  sections: doc.sections(),
+                  plaintext: doc.plaintext()
+	      }
+	  }
          });
