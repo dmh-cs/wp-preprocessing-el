@@ -77,7 +77,7 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
   if 'links' in sentence:
     for link in sentence['links']:
       if is_valid_link(link):
-        link_text = 'text' in link or link['page']
+        link_text = link.get('text') or link['page']
         try:
           mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link_text)
           entity = _get_entity(redirects_lookup, link)
@@ -103,7 +103,7 @@ def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sent
 def get_link_contexts(redirects_lookup, page):
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections], [])
-  sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if 'data' in table] for section in sections if 'tables' in section],
+  sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables
   return reduce(_.curry(sentence_to_link_contexts_reducer)(redirects_lookup, page),
