@@ -22,14 +22,14 @@ def _cleaned_link_is_valid(sentence_text, cleaned_link):
   return not link_mention_is_blank and link_mention_is_in_page
 
 def _sentence_clean_link_text(link):
-  if link.get('text'):
-    cleaned_text = clean_page_content(link.get('text')).strip()
+  if 'text' in link:
+    cleaned_text = clean_page_content(link['text']).strip()
     return _.assign({}, link, {'text': cleaned_text})
   else:
     return link
 
 def _sentence_clean_link_page(link):
-  if link.get('page'):
+  if 'page' in link:
     return _.assign({}, link, {'page': link['page'].strip()})
   else:
     return link
@@ -47,14 +47,14 @@ def _sentence_clean_reducer(sentence_text, cleaned_links, link):
 
 def _clean_sentence(sentence):
   cleaned_sentence = _.assign({}, sentence, {'text': clean_page_content(sentence['text'])})
-  if sentence.get('links'):
+  if 'links' in sentence:
     cleaned_sentence['links'] = reduce(_.curry(_sentence_clean_reducer)(cleaned_sentence['text']),
                                        sentence['links'],
                                        [])
   return cleaned_sentence
 
 def _clean_table(table):
-  if table.get('data'):
+  if 'data' in table:
     return _.assign({}, table, {'data': _clean_sentence(table['data'])})
   else:
     return table
@@ -67,7 +67,7 @@ def _clean_tables(tables):
 
 def _clean_section(section):
   cleaned_section = {'sentences': _clean_sentences(section['sentences'])}
-  if section.get('tables'):
+  if 'tables' in section:
     _.assign(cleaned_section, {'tables': _clean_tables(section['tables'])})
   return _.assign({}, section, cleaned_section)
 

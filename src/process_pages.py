@@ -7,7 +7,7 @@ from data_cleaners import clean_page
 
 def is_valid_page(page):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
-  if page and page.get('title'):
+  if page and 'title' in page:
     return not any([_.has_substr(page['title'].lower(), flag) for flag in flags])
   else:
     return False
@@ -15,11 +15,11 @@ def is_valid_page(page):
 def is_valid_link(link):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
   result = True
-  if link and link.get('page'):
+  if link and 'page' in link:
     result = result and (not any([_.has_substr(link['page'].lower(), flag) for flag in flags]))
   else:
     return False
-  if link and link.get('text'):
+  if link and 'text' in link:
     result = result and (not any([_.has_substr(link['text'].lower(), flag) for flag in flags]))
   return result
 
@@ -74,10 +74,10 @@ def _get_entity(redirects_lookup, link):
 def sentence_to_link_contexts(redirects_lookup, page, sentence):
   page_title = page['title']
   contexts = {}
-  if sentence.get('links'):
+  if 'links' in sentence:
     for link in sentence['links']:
       if is_valid_link(link):
-        link_text = link.get('text') or link['page']
+        link_text = 'text' in link or link['page']
         try:
           mention_offset = get_mention_offset(page['plaintext'], sentence['text'], link_text)
           entity = _get_entity(redirects_lookup, link)
@@ -85,7 +85,7 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
                      'sentence': sentence['text'],
                      'offset': mention_offset,
                      'page_title': page_title}
-          if contexts.get(entity):
+          if entity in contexts:
             contexts[entity].append(context)
           else:
             contexts[entity] = [context]
@@ -103,7 +103,7 @@ def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sent
 def get_link_contexts(redirects_lookup, page):
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections], [])
-  sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
+  sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if 'data' in table] for section in sections if 'tables' in section],
                               [])
   all_sentences = sentences + sentences_from_tables
   return reduce(_.curry(sentence_to_link_contexts_reducer)(redirects_lookup, page),
