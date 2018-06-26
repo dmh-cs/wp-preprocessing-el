@@ -1,4 +1,5 @@
 include ../.env
+VER=$(shell git rev-parse HEAD)
 
 up:
 	@echo ''
@@ -21,6 +22,15 @@ up:
 	@echo '-------------------'
 	@echo ''
 	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" < create_views.sql
+
+	@echo ''
+	@echo '-------------------'
+	@echo '-- Recording script version --'
+	@echo '-------------------'
+	@echo ''
+	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" -e "drop table if exists info"
+	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" -e "create table if not exists info (version varchar(255))"
+	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" -e "insert into info values ('$(VER)')"
 
 down:
 	@echo ''
