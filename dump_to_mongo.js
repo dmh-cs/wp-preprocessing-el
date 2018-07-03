@@ -14,7 +14,7 @@ dumpster({file: dump_path,
 		  title: doc.title(),
 		  categories: doc.categories(),
                   isDisambiguation: doc.isDisambiguation(),
-                  sections: doc.sections(),
+                  sections: doc.sections().map(i => i.json()),
                   plaintext: doc.plaintext()
 	      }
 	  }

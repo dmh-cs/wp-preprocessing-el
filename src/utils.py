@@ -11,6 +11,7 @@ def sort_mentions(mentions):
   return _.sort(mentions, key=lambda obj: obj['offset'])
 
 def match_all(to_match, string):
+  assert to_match != ''
   indexes = []
   index = string.find(to_match)
   remaining_string = string

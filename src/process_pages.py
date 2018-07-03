@@ -102,7 +102,7 @@ def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sent
 
 def get_link_contexts(redirects_lookup, page):
   sections = page['sections']
-  sentences = sum([section['sentences'] for section in sections], [])
+  sentences = sum([section['sentences'] for section in sections if 'sentences' in section], [])
   sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables

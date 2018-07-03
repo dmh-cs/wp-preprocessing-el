@@ -8,3 +8,4 @@ node_modules
 *.prof
 *.iobes
 /iobes.tar.gz
+*.pkl

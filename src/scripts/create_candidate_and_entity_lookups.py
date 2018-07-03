@@ -27,19 +27,25 @@ def main():
       cursor.execute("SET NAMES utf8mb4;")
       cursor.execute("SET CHARACTER SET utf8mb4;")
       cursor.execute("SET character_set_connection=utf8mb4;")
-      cursor.execute('select mention_id, entity_id from entity_mentions')
+      cursor.execute('select mention, entity_id from entity_mentions_text')
       buff_len = 10000
       num_batches = math.ceil(cursor.rowcount / buff_len)
-      lookup = {}
+      lookups = {'entity_candidates': {},
+                 'entity_labels': {}}
+      entity_label_ctr = 0
       for batch_num in progressbar(range(num_batches)):
         results = cursor.fetchmany(buff_len)
         for row in results:
-          if row['mention_id'] in lookup:
-            lookup[row['mention_id']].append(row['entity_id'])
+          if row['entity_id'] not in lookups['entity_labels']:
+            lookups['entity_labels'][row['entity_id']] = entity_label_ctr
+            entity_label_ctr += 1
+          if row['mention'] in lookups['entity_candidates']:
+            if lookups['entity_labels'][row['entity_id']] not in lookups['entity_candidates'][row['mention']]:
+              lookups['entity_candidates'][row['mention']].append(lookups['entity_labels'][row['entity_id']])
           else:
-            lookup[row['mention_id']] = [row['entity_id']]
-      with open('candidate_lookup.pkl', 'wb') as lookup_file:
-        pickle.dump(lookup, lookup_file)
+            lookups['entity_candidates'][row['mention']] = [lookups['entity_labels'][row['entity_id']]]
+      with open('lookups.pkl', 'wb') as lookup_file:
+        pickle.dump(lookups, lookup_file)
   finally:
     connection.close()
 

@@ -19,7 +19,8 @@ def _cleaned_link_is_valid(sentence_text, cleaned_link):
   link_page_is_in_page = 'page' in cleaned_link and sentence_text.find(cleaned_link['page']) != -1
   link_mention_is_in_page = link_text_is_in_page or (link_page_is_in_page and 'text' not in cleaned_link)
   link_mention_is_blank = _.is_empty(cleaned_link['text'].strip()) if 'text' in cleaned_link else False
-  return not link_mention_is_blank and link_mention_is_in_page
+  link_page_is_blank = _.is_empty(cleaned_link['page'].strip()) if 'page' in cleaned_link else False
+  return not link_page_is_blank and not link_mention_is_blank and link_mention_is_in_page
 
 def _sentence_clean_link_text(link):
   if 'text' in link:
@@ -66,7 +67,10 @@ def _clean_tables(tables):
   return [[_clean_table(table) for table in tables[0]]]
 
 def _clean_section(section):
-  cleaned_section = {'sentences': _clean_sentences(section['sentences'])}
+  if 'sentences' in section:
+    cleaned_section = {'sentences': _clean_sentences(section['sentences'])}
+  else:
+    cleaned_section = section
   if 'tables' in section:
     _.assign(cleaned_section, {'tables': _clean_tables(section['tables'])})
   return _.assign({}, section, cleaned_section)
