@@ -42,8 +42,7 @@ up:
 	@echo '-- Dropping name_title constraint on page table --'
 	@echo '-------------------'
 	@echo ''
-	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(ENWIKI_DBNAME)" -e "ALTER table page drop index name_title;
-	"
+	mysql -u"$(DBUSER)" --host "$(DBHOST)" "$(ENWIKI_DBNAME)" -e "ALTER table page drop index name_title"
 
 	@echo ''
 	@echo '-------------------'
