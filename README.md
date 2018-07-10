@@ -24,6 +24,11 @@ DBUSER=root # mysql user to authenticate as
 DBPASS=pass # password for mysql user
 DBHOST=localhost # mysql host
 ```
+- Fetch the nltk requirements:
+``` python
+import nltk
+nltk.download('punkt')
+```
 - Load the wikipedia dumps:
   - `cd enwiki_db`
   - `make`
