@@ -1,9 +1,27 @@
+import pymysql
+import os
+from dotenv import load_dotenv
 import pickle
 from random import shuffle
 
 import pydash as _
+import sys
+sys.path.append('./src')
 
-from data_fetchers import get_connection
+def get_connection():
+  load_dotenv(dotenv_path='.env')
+  DATABASE_NAME = os.getenv("EL_DBNAME")
+  DATABASE_USER = os.getenv("DBUSER")
+  DATABASE_PASSWORD = os.getenv("DBPASS")
+  DATABASE_HOST = os.getenv("DBHOST")
+  connection = pymysql.connect(host=DATABASE_HOST,
+                               user=DATABASE_USER,
+                               password=DATABASE_PASSWORD,
+                               db=DATABASE_NAME,
+                               charset='utf8mb4',
+                               use_unicode=True,
+                               cursorclass=pymysql.cursors.DictCursor)
+  return connection
 
 def get_page_id_order(cursor):
   cursor.execute('select id from pages')
