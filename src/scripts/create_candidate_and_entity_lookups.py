@@ -27,25 +27,38 @@ def main():
       cursor.execute("SET NAMES utf8mb4;")
       cursor.execute("SET CHARACTER SET utf8mb4;")
       cursor.execute("SET character_set_connection=utf8mb4;")
-      cursor.execute('select mention, entity_id from entity_mentions_text')
+      cursor.execute('select mention, entity_id, page_id from entity_mentions_text')
       buff_len = 10000
       num_batches = math.ceil(cursor.rowcount / buff_len)
       lookups = {'entity_candidates': {},
+                 'leftover_candidates': {},
                  'entity_labels': {}}
       entity_label_ctr = 0
+      train_size = 0.8
+      try:
+        with open('./page_id_order.pkl', 'rb') as f:
+          page_id_order = pickle.load(f)
+      except Exception as e:
+        raise type(e)(str(e) + '\n' + 'Create `page_id_order.pkl` by running `create_page_id_order.py`').with_traceback(sys.exc_info()[2])
+      num_train_pages = int(len(page_id_order) * train_size)
+      train_page_id_order = page_id_order[:num_train_pages]
       for batch_num in progressbar(range(num_batches)):
         results = cursor.fetchmany(buff_len)
         for row in results:
           if row['entity_id'] not in lookups['entity_labels']:
             lookups['entity_labels'][row['entity_id']] = entity_label_ctr
             entity_label_ctr += 1
-          if row['mention'] in lookups['entity_candidates']:
-            if lookups['entity_labels'][row['entity_id']] not in lookups['entity_candidates'][row['mention']]:
-              lookups['entity_candidates'][row['mention']].append(lookups['entity_labels'][row['entity_id']])
+          if row['page_id'] in train_page_id_order:
+            property_name = 'entity_candidates'
           else:
-            lookups['entity_candidates'][row['mention']] = [lookups['entity_labels'][row['entity_id']]]
-      with open('lookups.pkl', 'wb') as lookup_file:
-        pickle.dump(lookups, lookup_file)
+            property_name = 'leftover_candidates'
+          if row['mention'] in lookups[property_name]:
+            if lookups['entity_labels'][row['entity_id']] not in lookups[property_name][row['mention']]:
+              lookups[property_name][row['mention']].append(lookups['entity_labels'][row['entity_id']])
+          else:
+            lookups[property_name][row['mention']] = [lookups['entity_labels'][row['entity_id']]]
+      with open(str(train_size) + '_lookups.pkl', 'wb') as lookup_file:
+        pickle.dump({'lookups': lookups, 'train_size': train_size}, lookup_file)
   finally:
     connection.close()
 
