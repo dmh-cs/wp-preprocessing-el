@@ -30,7 +30,7 @@ def main():
       cursor.execute('select mention, entity_id, page_id from entity_mentions_text')
       buff_len = 10000
       num_batches = math.ceil(cursor.rowcount / buff_len)
-      prior = {'entity_candidates': {},
+      lookups = {'entity_candidates_prior': {},
                  'leftover_candidates': {},
                  'entity_labels': {}}
       entity_label_ctr = 0
@@ -45,24 +45,24 @@ def main():
       for batch_num in progressbar(range(num_batches)):
         results = cursor.fetchmany(buff_len)
         for row in results:
-          if row['entity_id'] not in prior['entity_labels']:
-            prior['entity_labels'][row['entity_id']] = entity_label_ctr
+          if row['entity_id'] not in lookups['entity_labels']:
+            lookups['entity_labels'][row['entity_id']] = entity_label_ctr
             entity_label_ctr += 1
           if row['page_id'] in train_page_id_order:
-            property_name = 'entity_candidates'
+            property_name = 'entity_candidates_prior'
           else:
             property_name = 'leftover_candidates'
-          entity_label = prior['entity_labels'][row['entity_id']]
-          if row['mention'] in prior[property_name]:
-            if entity_label not in prior[property_name][row['mention']]:
-              if entity_label in prior[property_name][row['mention']]:
-                prior[property_name][row['mention']][entity_label] += 1
+          entity_label = lookups['entity_labels'][row['entity_id']]
+          if row['mention'] in lookups[property_name]:
+            if entity_label not in lookups[property_name][row['mention']]:
+              if entity_label in lookups[property_name][row['mention']]:
+                lookups[property_name][row['mention']][entity_label] += 1
               else:
-                prior[property_name][row['mention']][entity_label] = 1
+                lookups[property_name][row['mention']][entity_label] = 1
           else:
-            prior[property_name][row['mention']] = {entity_label: 1}
-      with open(str(train_size) + '_prior.pkl', 'wb') as lookup_file:
-        pickle.dump({'prior': prior, 'train_size': train_size}, lookup_file)
+            lookups[property_name][row['mention']] = {entity_label: 1}
+      with open('lookups.pkl', 'wb') as lookup_file:
+        pickle.dump({'lookups': lookups, 'train_size': train_size}, lookup_file)
   finally:
     connection.close()
 
