@@ -7,7 +7,7 @@ from data_cleaners import clean_page
 
 def is_valid_page(page):
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
-  has_content = len(page['plaintext'].strip()) > 5
+  has_content = page and (len(page['plaintext'].strip()) > 5)
   if page and has_content and 'title' in page:
     return not any([_.has_substr(page['title'].lower(), flag) for flag in flags])
   else:
