@@ -148,8 +148,14 @@ def _link_title_exact_match_heuristic(page, link_contexts):
 def _entity_for_each_page(page, link_contexts):
   return _.assign({page['title']: []}, link_contexts)
 
+def _drop_overlapping_mentions(mentions):
+  return reduce(lambda acc, mention: acc + [mention] if not _mention_overlaps(acc, mention) else acc,
+                mentions,
+                [])
+
 def get_link_contexts_using_heuristics(redirects_lookup, page):
   link_contexts = get_link_contexts(redirects_lookup, page)
+  link_contexts = _.map_values(link_contexts, _drop_overlapping_mentions)
   link_contexts = _page_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _link_title_exact_match_heuristic(page, link_contexts)
   link_contexts = _entity_for_each_page(page, link_contexts)
