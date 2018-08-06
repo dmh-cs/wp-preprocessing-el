@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import re
+import pydash as _
 from nltk.data              import load
 from nltk.tokenize.treebank import TreebankWordTokenizer
 
@@ -21,5 +22,13 @@ def parse_for_sentence_spans(page_content):
   tokenizer = load('tokenizers/punkt/{0}.pickle'.format('english'))
   return list(tokenizer.span_tokenize(page_content))
 
-def parse_for_token_spans(sentence):
-  return list(_treebank_word_tokenizer.span_tokenize(sentence))
+def parse_for_sentences(page_content):
+  tokenizer = load('tokenizers/punkt/{0}.pickle'.format('english'))
+  return list(tokenizer.tokenize(page_content))
+
+def parse_for_tokens(sentence):
+  return list(_treebank_word_tokenizer.tokenize(sentence))
+
+def parse_text_for_tokens(text):
+  sentences = parse_for_sentences(text)
+  return _.flatten([parse_for_tokens(sentence) for sentence in sentences])

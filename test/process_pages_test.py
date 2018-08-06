@@ -19,6 +19,23 @@ def test__mention_overlaps():
   mention = {'text': 'other', 'offset': 5, 'page_title': 'Other'}
   assert pp._mention_overlaps(mentions, mention)
 
+def test__mention_overlaps_mandela():
+  mentions = [
+    {
+      "text": "Nelson Mandela",
+      "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+      "offset": 999,
+      "page_title": "Parade"
+    }
+  ]
+  mention = {
+    "text": "Mandela",
+    "sentence": "Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+    "offset": 1006,
+    "page_title": "Parade"
+  }
+  assert pp._mention_overlaps(mentions, mention)
+
 def test_process_page():
   with open('test/fixtures/parade_page.json') as f:
     parade_page = json.load(f)

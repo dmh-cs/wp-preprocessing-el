@@ -4,95 +4,42 @@ import re
 
 import utils as u
 
-from parsers import parse_for_sentence_spans, parse_for_token_spans
+from parsers import parse_for_sentences, parse_text_for_tokens
 
-def _get_sentence(page_content, sentence_start, sentence_end):
-  return page_content[sentence_start : sentence_end]
+mention_start_token = 'MENTION_START_HERE'
+mention_end_token = 'MENTION_END_HERE'
 
-def _label_iobes(mention_spans, token_span):
-  [token_start, token_end] = token_span
-  if any([token_start == mention_start and token_end == mention_end for mention_start, mention_end in mention_spans]):
-    return 'S'
-  elif any([token_start == mention_start for mention_start, _ in mention_spans]):
-    return 'B'
-  elif any([token_end == mention_end for _, mention_end in mention_spans]):
-    return 'E'
-  elif any([token_start > mention_start and token_end < mention_end for mention_start, mention_end in mention_spans]):
-    return 'I'
-  else:
-    return 'O'
+def _insert_mention_flags(page_content, link_context):
+  assert link_context['offset'] < len(page_content)
+  start_mention = ' ' + mention_start_token + ' '
+  end_mention = ' ' + mention_end_token + ' '
+  mention_text = link_context['text']
+  start = link_context['offset']
+  end = start + len(mention_text)
+  content = page_content[:start] + start_mention + mention_text + end_mention + page_content[end:]
+  return content
 
-def _label_iobes_reducer(mention_spans, sentence_iobes, token_span):
-  sentence_iobes.append(_label_iobes(mention_spans, token_span))
-  if len(sentence_iobes) > 1 and sentence_iobes[-2] in ['I', 'B'] and sentence_iobes[-1] == 'O':
-    print('Sentence IOBES so far:', sentence_iobes)
-    raise ValueError('Inserting O after ' + sentence_iobes[-1] + ' will create an unbalanced IOBES string')
-  return sentence_iobes
-
-def _insert_link_titles_and_tokens(iobes_sequence, mention_link_titles, tokens):
-  with_link_titles = []
-  mention_ctr = 0
-  for token, iobes in zip(tokens, iobes_sequence):
-    row = []
-    row.append(token)
-    if iobes != 'O':
-      row.append(u.escape_title(mention_link_titles[mention_ctr]))
-      if iobes == 'S' or iobes == 'E':
-        mention_ctr += 1
-    row.append(iobes)
-    with_link_titles.append(row)
-  return with_link_titles
-
-def _get_splice(span, index):
-  if index == span[0] or index == span[1]:
-    return
-  else:
-    return [(span[0], index), (index, span[1])]
-
-def _splice_at(spans, index):
-  for i, span in enumerate(spans):
-    if index >= span[0] and index <= span[1]:
-      splice = _get_splice(spans[i], index)
-      if splice:
-        return spans[:i] + splice + spans[i + 1:]
-      else:
-        return spans
-  raise ValueError('spans:', spans, '\n',
-                   'Split index:', index, '\n',
-                   'Mention extends outside of detected tokens')
-
-def _is_mention_between_tokens(spans, span):
-  """Checks if a span occurs between tokens in `spans`. Only returns
-True if the span starts where a span ends in `spans` and no other
-element in `spans` starts at that index. And Vice Versa.
-  """
-  mention_starts_at_token_end = any([span[0] == end for _, end in spans])
-  mention_ends_at_token_start = any([span[1] == start for start, _ in spans])
-  no_token_starts_at_mention_start = not any([span[0] == start for start, _ in spans])
-  no_token_ends_at_mention_end = not any([span[1] == end for _, end in spans])
-  return (mention_starts_at_token_end and no_token_starts_at_mention_start) or \
-    (mention_ends_at_token_start and no_token_ends_at_mention_end)
-
-def _merge_spans(spans, spans_to_merge):
-  """Merges a list of spans into another by making splits in the
-elements of `spans`. If an element in `spans_to_merge` is between
-spans in `spans` then that span cannot be merged into `spans` in a
-consistent way, so we drop that element in the calling function
-scope.
-  """
-  offsets = spans
-  dropped_mention_indexes = []
-  for i, new_span in enumerate(spans_to_merge):
-    mention_is_between_tokens = _is_mention_between_tokens(offsets, new_span)
-    if mention_is_between_tokens:
-      dropped_mention_indexes.append(i)
-    new_start, new_end = new_span
-    try:
-      offsets = _splice_at(offsets, new_start)
-      offsets = _splice_at(offsets, new_end)
-    except ValueError:
-      dropped_mention_indexes.append(i)
-  return offsets, _.uniq(dropped_mention_indexes)
+def _merge_sentences_with_straddling_mentions(sentences):
+  result = []
+  sentence_ctr = 0
+  while sentence_ctr < len(sentences):
+    sentence = sentences[sentence_ctr]
+    start_indexes = u.match_all(mention_start_token, sentence)
+    end_indexes = u.match_all(mention_end_token, sentence)
+    if len(start_indexes) != len(end_indexes):
+      sentence_ctr += 1
+      next_sentence = sentences[sentence_ctr]
+      transformed_sentence = sentence + ' ' + next_sentence
+      while mention_end_token not in next_sentence:
+        sentence_ctr += 1
+        next_sentence = sentences[sentence_ctr]
+        transformed_sentence = transformed_sentence + ' ' + next_sentence
+      sentence_ctr += 1
+      result.append(transformed_sentence)
+    else:
+      sentence_ctr += 1
+      result.append(sentence)
+  return result
 
 def get_page_iobes(page, mentions, mention_link_titles):
   """Returns a list of triples/pairs describing the iobes of the page
@@ -102,45 +49,40 @@ the token is not part of a mention, and is a triple otherwise.
   """
   page_iobes = []
   page_content = page['content']
-  page_tokens = []
-  mention_spans = [[mention['offset'],
-                    mention['offset'] + len(mention['text'])] for mention in mentions]
-  for sentence_start, sentence_end in parse_for_sentence_spans(page_content):
-    f = lambda group: group[0][0] >= sentence_start and group[0][1] <= sentence_end
-    filtered = _.filter_(zip(mention_spans, mention_link_titles),
-                         f)
-    sentence_mention_spans = [offset for offset, title in filtered]
-    sentence_mention_link_titles = [title for offset, title in filtered]
-    sentence = _get_sentence(page_content, sentence_start, sentence_end)
-    sentence_token_offsets = parse_for_token_spans(sentence)
-    page_tokens += sentence_token_offsets
-    sentence_tokens = [sentence[start : end] for start, end in sentence_token_offsets]
-    token_spans = [[offset[0] + sentence_start,
-                    offset[1] + sentence_start] for offset in sentence_token_offsets]
-    try:
-      all_spans, dropped_indexes = _merge_spans(token_spans, sentence_mention_spans)
-      _.pull_at(sentence_mention_spans, dropped_indexes)
-      _.pull_at(sentence_mention_link_titles, dropped_indexes)
-    except ValueError:
-      print('Page:', page['title'])
-      print('Sentence:', sentence)
-      print('Sentence mentions:', sentence_mention_link_titles)
-      raise
-    token_start_offsets = [offset[0] for offset in all_spans]
-    token_end_offsets = [offset[1] for offset in all_spans]
-    try:
-      iobes_sequence = reduce(_.curry(_label_iobes_reducer)(sentence_mention_spans),
-                              zip(token_start_offsets, token_end_offsets),
-                              [])
-    except ValueError:
-      print('Page:', page['title'])
-      print('Sentence:', sentence)
-      print('Sentence mentions:', sentence_mention_link_titles)
-      raise
-    iobes_with_link_titles_and_content = _insert_link_titles_and_tokens(iobes_sequence,
-                                                                        sentence_mention_link_titles,
-                                                                        sentence_tokens)
-    page_iobes.append(iobes_with_link_titles_and_content)
+  flagged_page = reduce(_insert_mention_flags,
+                        sorted(mentions, key=lambda pair: pair['offset'], reverse=True),
+                        page_content)
+  sentences = parse_for_sentences(flagged_page)
+  sentences = _merge_sentences_with_straddling_mentions(sentences)
+  link_title_ctr = 0
+  in_a_mention = False
+  for sentence in sentences:
+    sentence_tokens = parse_text_for_tokens(sentence)
+    sentence_iobes = []
+    for token_ctr, current_token in enumerate(sentence_tokens):
+      previous_token = sentence_tokens[token_ctr - 1] if token_ctr != 0 else None
+      next_token = sentence_tokens[token_ctr + 1] if token_ctr + 1 != len(sentence_tokens) else None
+      if current_token == mention_start_token or current_token == mention_end_token:
+        continue
+      elif previous_token == mention_start_token and next_token == mention_end_token:
+        iobes = 'S'
+      elif previous_token == mention_start_token:
+        iobes = 'B'
+        in_a_mention = True
+      elif next_token == mention_end_token:
+        iobes = 'E'
+        in_a_mention = False
+      elif in_a_mention:
+        iobes = 'I'
+      else:
+        iobes = 'O'
+      if iobes == 'O':
+        sentence_iobes.append([current_token, iobes])
+      else:
+        sentence_iobes.append([current_token, u.escape_title(mention_link_titles[link_title_ctr]), iobes])
+        if iobes in ['S', 'E']:
+          link_title_ctr += 1
+    page_iobes.append(sentence_iobes)
   return page_iobes
 
 def write_page_iobes(page, page_iobes):
