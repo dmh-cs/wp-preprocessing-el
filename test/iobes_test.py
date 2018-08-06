@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import pydash as _
 import json
 import sys
@@ -5,6 +7,7 @@ sys.path.append('./test/fixtures')
 from parade_iobes import parade_iobes
 
 import iobes
+from utils import escape_title
 
 
 def test__label_iobes():
@@ -42,3 +45,14 @@ def test_get_page_iobes():
   mentions = _.flat_map(contexts, _.last)
   mention_link_titles = list(map(_.head, contexts))
   assert parade_iobes == iobes.get_page_iobes(parade_page, mentions, mention_link_titles)
+
+def test_get_page_iobes_word_match():
+  page = {'content': '*2002–03 NHL season', 'source_id': 0, 'title': '2002–03 Buffalo Sabres season'}
+  page_contexts = {'2002–03 NHL season': [{'text': '2002–03 NHL season',
+                                           'sentence': '*2002–03 NHL season',
+                                           'offset': 1,
+                                           'page_title': '2002–03 Buffalo Sabres season'}]}
+  mentions = list(page_contexts.values())[0]
+  mention_link_titles = ['2002–03 NHL season']
+  page_iobes = [[['*', 'O'], [escape_title('2002–03'), 'B'], ['NHL', 'I'], ['season', 'E']]]
+  assert page_iobes == iobes.get_page_iobes(page, mentions, mention_link_titles)
