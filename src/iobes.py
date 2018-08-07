@@ -19,18 +19,21 @@ def _insert_mention_flags(page_content, link_context):
   content = page_content[:start] + start_mention + mention_text + end_mention + page_content[end:]
   return content
 
+def _sentence_is_unbalanced(sentence):
+  start_indexes = u.match_all(mention_start_token, sentence)
+  end_indexes = u.match_all(mention_end_token, sentence)
+  return len(start_indexes) != len(end_indexes)
+
 def _merge_sentences_with_straddling_mentions(sentences):
   result = []
   sentence_ctr = 0
   while sentence_ctr < len(sentences):
     sentence = sentences[sentence_ctr]
-    start_indexes = u.match_all(mention_start_token, sentence)
-    end_indexes = u.match_all(mention_end_token, sentence)
-    if len(start_indexes) != len(end_indexes):
+    if _sentence_is_unbalanced(sentence):
       sentence_ctr += 1
       next_sentence = sentences[sentence_ctr]
       transformed_sentence = sentence + ' ' + next_sentence
-      while mention_end_token not in next_sentence:
+      while _sentence_is_unbalanced(transformed_sentence):
         sentence_ctr += 1
         next_sentence = sentences[sentence_ctr]
         transformed_sentence = transformed_sentence + ' ' + next_sentence
