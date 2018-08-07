@@ -1,5 +1,6 @@
 from functools import reduce
 import pydash as _
+from toolz import pipe
 from progressbar import progressbar
 
 import utils as u
@@ -148,18 +149,29 @@ def _link_title_exact_match_heuristic(page, link_contexts):
 def _entity_for_each_page(page, link_contexts):
   return _.assign({page['title']: []}, link_contexts)
 
-def _drop_overlapping_mentions(mentions):
-  return reduce(lambda acc, mention: acc + [mention] if not _mention_overlaps(acc, mention) else acc,
-                mentions,
-                [])
+def _drop_overlapping_mentions_reducer(acc, pair):
+  mentions_so_far, link_contexts = acc
+  entity, mention = pair
+  if not _mention_overlaps(mentions_so_far, mention):
+    mentions_so_far.append(mention)
+    u.append_at_key(link_contexts, entity, mention)
+  return (mentions_so_far, link_contexts)
+
+def _drop_overlapping_mentions(link_contexts):
+  entity_mention_pairs = sum(_.map_values(link_contexts,
+                                          lambda mentions, entity: [[entity, mention] for mention in mentions]).values(),
+                             [])
+  __, reduced_link_contexts = reduce(_drop_overlapping_mentions_reducer,
+                                     entity_mention_pairs,
+                                     ([], {}))
+  return reduced_link_contexts
 
 def get_link_contexts_using_heuristics(redirects_lookup, page):
-  link_contexts = get_link_contexts(redirects_lookup, page)
-  link_contexts = _.map_values(link_contexts, _drop_overlapping_mentions)
-  link_contexts = _page_title_exact_match_heuristic(page, link_contexts)
-  link_contexts = _link_title_exact_match_heuristic(page, link_contexts)
-  link_contexts = _entity_for_each_page(page, link_contexts)
-  return link_contexts
+  return pipe(get_link_contexts(redirects_lookup, page),
+              _drop_overlapping_mentions,
+              _.partial(_page_title_exact_match_heuristic, page),
+              _.partial(_link_title_exact_match_heuristic, page),
+              _.partial(_entity_for_each_page, page))
 
 def process_page(redirects_lookup, page, is_seed_page=False):
   cleaned_page = clean_page(page)

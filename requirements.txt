@@ -5,3 +5,4 @@ python-dotenv==0.8.1
 progressbar2==3.38.0
 nltk==3.3
 pychalk==2.0.0
+toolz==0.9.0

@@ -33,3 +33,9 @@ def create_batches(coll, batch_size=1000):
 
 def escape_title(title):
   return urllib.parse.quote(title)
+
+def append_at_key(obj, key, val):
+  if obj.get(key):
+    obj[key].append(val)
+  else:
+    obj[key] = [val]
