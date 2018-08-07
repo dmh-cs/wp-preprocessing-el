@@ -19,6 +19,12 @@ def test__mention_overlaps():
   mention = {'text': 'other', 'offset': 5, 'page_title': 'Other'}
   assert pp._mention_overlaps(mentions, mention)
 
+def test__mention_overlaps_contains():
+  mentions = [{'text': 'other', 'offset': 5, 'page_title': 'Other'},
+              {'text': 'my', 'offset': 20, 'page_title': 'My page'}]
+  mention = {'text': 'some other text', 'offset': 0, 'page_title': 'Other'}
+  assert pp._mention_overlaps(mentions, mention)
+
 def test__mention_overlaps_mandela():
   mentions = [
     {

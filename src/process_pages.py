@@ -119,7 +119,8 @@ def _mention_overlaps(mentions, mention_to_check):
   end = mention_to_check['offset'] + len(mention_to_check['text'])
   starts_inside_a_mention = any([start >= span[0] and start <= span[1] for span in mention_spans])
   ends_inside_a_mention = any([end >= span[0] and end <= span[1] for span in mention_spans])
-  return starts_inside_a_mention or ends_inside_a_mention
+  contains_a_mention = any([start <= span[0] and end >= span[1] for span in mention_spans])
+  return starts_inside_a_mention or ends_inside_a_mention or contains_a_mention
 
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
   matches = u.match_all(to_match, page['plaintext'])
@@ -168,9 +169,9 @@ def _drop_overlapping_mentions(link_contexts):
 
 def get_link_contexts_using_heuristics(redirects_lookup, page):
   return pipe(get_link_contexts(redirects_lookup, page),
-              _drop_overlapping_mentions,
               _.partial(_page_title_exact_match_heuristic, page),
               _.partial(_link_title_exact_match_heuristic, page),
+              _drop_overlapping_mentions,
               _.partial(_entity_for_each_page, page))
 
 def process_page(redirects_lookup, page, is_seed_page=False):
