@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dumpster-dive": "^3.4.0"
+    "dumpster-dive": "git@github.com:dmh43/wtf_wikipedia.git#cs-custom"
   }
 }
