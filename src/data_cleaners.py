@@ -10,11 +10,12 @@ def _drop_template_parens(page_content):
 def _drop_reference_tag(page_content):
   return page_content.replace('<references />', '')
 
-
 def clean_page_content(page_content):
   return _drop_template_parens(_drop_reference_tag(page_content))
 
 def _cleaned_link_is_valid(sentence_text, cleaned_link):
+  '''Checks corner cases where the fields are not present due to
+typos in the markup or complex use of templates'''
   link_text_is_in_page = 'text' in cleaned_link and sentence_text.find(cleaned_link['text']) != -1
   link_page_is_in_page = 'page' in cleaned_link and sentence_text.find(cleaned_link['page']) != -1
   link_mention_is_in_page = link_text_is_in_page or (link_page_is_in_page and 'text' not in cleaned_link)
@@ -23,6 +24,8 @@ def _cleaned_link_is_valid(sentence_text, cleaned_link):
   return not link_page_is_blank and not link_mention_is_blank and link_mention_is_in_page
 
 def _sentence_clean_link_text(link):
+  '''Clean the anchor text of a link in the same way that pages as a
+whole are cleaned. This keeps anchor text and the page text in sync'''
   if 'text' in link:
     cleaned_text = clean_page_content(link['text']).strip()
     return _.assign({}, link, {'text': cleaned_text})
@@ -47,6 +50,7 @@ def _sentence_clean_reducer(sentence_text, cleaned_links, link):
     return cleaned_links
 
 def _clean_sentence(sentence):
+  '''Clean a sentence and its corresponding links'''
   cleaned_sentence = _.assign({}, sentence, {'text': clean_page_content(sentence['text'])})
   if 'links' in sentence:
     cleaned_sentence['links'] = reduce(_.curry(_sentence_clean_reducer)(cleaned_sentence['text']),
@@ -67,6 +71,7 @@ def _clean_tables(tables):
   return [[_clean_table(table) for table in tables[0]]]
 
 def _clean_section(section):
+  '''Clean the sentences and tables in a section'''
   if 'sentences' in section:
     cleaned_section = {'sentences': _clean_sentences(section['sentences'])}
   else:
@@ -76,6 +81,9 @@ def _clean_section(section):
   return _.assign({}, section, cleaned_section)
 
 def clean_page(page):
+  '''Remove invalid links, strip whitespace and remove improperly parsed
+nested templates in the child elements of a wikipedia page from the
+dumpster-dive dump'''
   cleaned_page = {'plaintext': clean_page_content(page['plaintext']),
                   'sections': [_clean_section(section) for section in page['sections']]}
   return _.assign({}, page, cleaned_page)

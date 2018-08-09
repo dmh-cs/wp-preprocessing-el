@@ -10,6 +10,8 @@ mention_start_token = 'MENTION_START_HERE'
 mention_end_token = 'MENTION_END_HERE'
 
 def _insert_mention_flags(page_content, link_context):
+  '''Creates a new page content string with start and end tokens used to
+delimit the start and end of mentions'''
   assert link_context['offset'] < len(page_content)
   start_mention = ' ' + mention_start_token + ' '
   end_mention = ' ' + mention_end_token + ' '
@@ -20,11 +22,15 @@ def _insert_mention_flags(page_content, link_context):
   return content
 
 def _sentence_is_unbalanced(sentence):
+  '''Checks if a string contains a different number of start_mention
+tokens vs end_mention tokens'''
   start_indexes = u.match_all(mention_start_token, sentence)
   end_indexes = u.match_all(mention_end_token, sentence)
   return len(start_indexes) != len(end_indexes)
 
 def _merge_sentences_with_straddling_mentions(sentences):
+  '''Returns a new list of sentences. Sentences containing mentions that
+span multiple sentences are merged'''
   result = []
   sentence_ctr = 0
   while sentence_ctr < len(sentences):

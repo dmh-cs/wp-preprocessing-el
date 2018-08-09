@@ -4,14 +4,14 @@ from unittest.mock import Mock
 
 import process_pages as pp
 
-def test_sentence_to_link_contexts():
+def test__sentence_to_link_contexts():
   redirects_lookup = {'some text': 'Some Words'}
   page = {'_id': 'My page', 'pageID': 0, 'title': 'My page', 'categories': [], 'plaintext': 'some text', 'isDisambiguation': False,
           'sections': [{'sentences': [{'text': 'some text', 'links': [{'page': 'some text'}]}]}]}
   sentence = {'text': 'some text', 'links': [{'page': 'some text'}]}
   link_contexts = {'Some Words':
                    [{'text': 'some text', 'offset': 0, 'page_title': 'My page', 'sentence': 'some text'}]}
-  assert link_contexts == pp.sentence_to_link_contexts(redirects_lookup, page, sentence)
+  assert link_contexts == pp._sentence_to_link_contexts(redirects_lookup, page, sentence)
 
 def test__mention_overlaps():
   mentions = [{'text': 'some other text', 'offset': 0, 'page_title': 'Other'},

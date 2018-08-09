@@ -34,6 +34,8 @@ def _build_redirects_lookup(redirects_rows):
   return lookup
 
 def get_redirects_lookup():
+  '''lookup from page name (case insensitive on first character) to page
+name. Spaces are spaces, not underscores'''
   connection = _connect_to_enwiki_db()
   try:
     with connection.cursor() as cursor:

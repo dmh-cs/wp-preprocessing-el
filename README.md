@@ -14,7 +14,7 @@
 - Make sure the path to the xml dump in `dump_to_mongo.js` is correct
 - Start mongo if it isn't already running: `mongod --dbpath <path to data directory>`
 - Start mysql if it isn't already running
-- `node dump_to_mongo.js` to parse the wikipedia dump and load mongo
+- `node dump_to_mongo.js` to parse the wikipedia dump and load it into mongo
 - `pip install --user -r requirements.txt` or however you like to install dependencies
 - Create `.env` with the following variables updated for your system:
 ``` shell
@@ -38,5 +38,10 @@ nltk.download('punkt')
 
 ## Running
 - `cd src`
-- `python src/scripts/create_entity_to_context.py`
-- `python src/scripts/create_iobes_training_set.py`
+- `python src/scripts/create_entity_to_context.py` loads the MySQL db.
+- `python src/scripts/create_iobes_training_set.py` creates iobes files for NER. Written to `out/`.
+- `python src/scripts/create_page_id_order.py` creates a pickle file defined a randomized ordering of pages to iterate through. This is needed so that the train-test split can be established before creating the prior distribution over entities.
+- `python src/scripts/create_entity_prior.py` creates the lookup for labels and prior over the entities.
+
+## Tests
+- `pytest test`

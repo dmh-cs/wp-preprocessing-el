@@ -7,6 +7,8 @@ import utils as u
 from data_cleaners import clean_page
 
 def is_valid_page(page):
+  '''Invalid pages are images or disambiguation pages that were not
+flagged at the parser level. Also check that the page has more than 5 characters.'''
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff', '(disambiguation)']
   has_content = page and (len(page['plaintext'].strip()) > 5)
   if page and has_content and 'title' in page:
@@ -15,6 +17,7 @@ def is_valid_page(page):
     return False
 
 def is_valid_link(link):
+'''Invalid links are to images. This works for both implicit and regular style links.'''
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
   result = True
   if link and 'page' in link:
@@ -26,6 +29,7 @@ def is_valid_link(link):
   return result
 
 def get_outlinks(processed_pages):
+  '''set of page names that these pages link to'''
   link_names = sum([list(processed_page['link_contexts'].keys()) for processed_page in processed_pages],
                    [])
   return set(link_names)
@@ -39,6 +43,9 @@ def _fetch_pages(pages_db, page_titles):
   return [pages_db.find_one({'_id': title}) for title in page_titles]
 
 def process_seed_pages(pages_db, redirects_lookup, seed_pages, depth=1):
+  '''Get the mentions in each of the seed pages as well as the pages
+they link to. Set `depth` > 1 to also process the pages that those
+pages link to'''
   processed_pages = _process_pages(redirects_lookup, seed_pages, is_seed_page=True)
   latest_processed_pages = processed_pages
   visited_page_titles = set([processed_page['document_info']['title'] for processed_page in processed_pages])
@@ -73,7 +80,7 @@ def _get_entity(redirects_lookup, link):
   followed_redirect = redirects_lookup.get(link_destination)
   return _.upper_first(followed_redirect or link_destination)
 
-def sentence_to_link_contexts(redirects_lookup, page, sentence):
+def _sentence_to_link_contexts(redirects_lookup, page, sentence):
   page_title = page['title']
   contexts = {}
   if 'links' in sentence:
@@ -95,24 +102,26 @@ def sentence_to_link_contexts(redirects_lookup, page, sentence):
           continue
   return contexts
 
-def sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sentence):
-  contexts = sentence_to_link_contexts(redirects_lookup, page, sentence)
+def _sentence_to_link_contexts_reducer(redirects_lookup, page, contexts_acc, sentence):
+  contexts = _sentence_to_link_contexts(redirects_lookup, page, sentence)
   if not _.is_empty(contexts):
     concat = lambda dest, src: dest + src if dest else src
     _.merge_with(contexts_acc, contexts, iteratee=concat)
   return contexts_acc
 
 def get_link_contexts(redirects_lookup, page):
+  '''link contexts is a dictionary from entity to mention details'''
   sections = page['sections']
   sentences = sum([section['sentences'] for section in sections if 'sentences' in section], [])
   sentences_from_tables = sum([[table['data'] for table in section['tables'][0] if table.get('data')] for section in sections if section.get('tables')],
                               [])
   all_sentences = sentences + sentences_from_tables
-  return reduce(_.curry(sentence_to_link_contexts_reducer)(redirects_lookup, page),
+  return reduce(_.curry(_sentence_to_link_contexts_reducer)(redirects_lookup, page),
                 all_sentences,
                 {})
 
 def _mention_overlaps(mentions, mention_to_check):
+  '''does a mention overlap a mention in the list.'''
   mention_spans = [[mention['offset'],
                     mention['offset'] + len(mention['text'])] for mention in mentions]
   start = mention_to_check['offset']
@@ -123,6 +132,7 @@ def _mention_overlaps(mentions, mention_to_check):
   return starts_inside_a_mention or ends_inside_a_mention or contains_a_mention
 
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
+  '''helper for defining heuristics for finding mentions of an entity'''
   matches = u.match_all(to_match, page['plaintext'])
   mentions = _.flatten(link_contexts.values())
   link_context = {entity: [{'text': to_match,
@@ -139,15 +149,18 @@ def _apply_exact_match_heuristic(page, link_contexts, entity_to_match):
   return _apply_match_heuristic(page, link_contexts, entity_to_match, entity_to_match)
 
 def _page_title_exact_match_heuristic(page, link_contexts):
+  '''look for an occurance of the page title'''
   return _apply_exact_match_heuristic(page, link_contexts, page['title'])
 
 def _link_title_exact_match_heuristic(page, link_contexts):
+  '''look for an occurance of the link anchor text'''
   link_titles = list(link_contexts.keys())
   return reduce(_.curry(_apply_exact_match_heuristic)(page),
                 link_titles,
                 link_contexts)
 
 def _entity_for_each_page(page, link_contexts):
+  '''make sure that each page has an entry in the dict'''
   return _.assign({page['title']: []}, link_contexts)
 
 def _drop_overlapping_mentions_reducer(acc, pair):
@@ -189,6 +202,7 @@ def process_page(redirects_lookup, page, is_seed_page=False):
           'entity_counts': entity_counts}
 
 def merge_mentions(processed_pages):
+  '''merge the link contexts from a list of pages'''
   concat = lambda dest, src: dest + src if dest else src
   link_contexts = reduce(lambda acc, val: _.merge_with(acc, val, iteratee=concat),
                          [processed_page['link_contexts'] for processed_page in processed_pages],
