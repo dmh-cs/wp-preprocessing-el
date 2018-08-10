@@ -7,7 +7,7 @@
 - wikipedia `page-articles` xml dump
 - wikipedia `pages` sql dump
 - wikipedia `redirect` sql dump
-- `pv` is nice to have for loading sql dumps into local mysql
+- `pv` is nice to have for loading sql dumps into local mysql (`brew install pv`)
 
 ## Setup
 - `npm install`

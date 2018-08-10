@@ -17,7 +17,7 @@ flagged at the parser level. Also check that the page has more than 5 characters
     return False
 
 def is_valid_link(link):
-'''Invalid links are to images. This works for both implicit and regular style links.'''
+  '''Invalid links are to images. This works for both implicit and regular style links.'''
   flags = ['.jpg', '.svg', '.png', '.gif', '.jpeg', '.bmp', '.tiff']
   result = True
   if link and 'page' in link:
