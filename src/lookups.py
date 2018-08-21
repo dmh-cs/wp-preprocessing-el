@@ -7,7 +7,7 @@ import utils as u
 
 def _connect_to_enwiki_db():
   load_dotenv(dotenv_path='.env')
-  DATABASE_NAME = "enwiki"
+  DATABASE_NAME = os.getenv("ENWIKI_DBNAME")
   DATABASE_USER = os.getenv("DBUSER")
   DATABASE_PASSWORD = os.getenv("DBPASS")
   DATABASE_HOST = os.getenv("DBHOST")
