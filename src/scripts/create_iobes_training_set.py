@@ -38,7 +38,11 @@ def main():
           page_id = page['id']
           sorted_mentions = get_page_mentions_by_entity(mentions_cursor, page_id)
           mention_link_titles = _.pluck(sorted_mentions, 'entity')
-          page_iobes = get_page_iobes(page, sorted_mentions, mention_link_titles)
+          mention_link_titles_preredirect = _.pluck(sorted_mentions, 'preredirect')
+          page_iobes = get_page_iobes(page,
+                                      sorted_mentions,
+                                      mention_link_titles,
+                                      mention_link_titles_preredirect)
           write_page_iobes(page, page_iobes)
   finally:
     connection.close()

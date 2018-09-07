@@ -2,7 +2,8 @@ CREATE OR REPLACE VIEW mention_by_entity AS
        SELECT m.text AS text,
               e.text AS entity,
               m.offset AS offset,
-              m.page_id AS page_id
+              m.page_id AS page_id,
+              m.preredirect AS preredirect
        FROM mentions m INNER JOIN entity_mentions em ON m.id = em.mention_id
                        INNER JOIN entities e ON e.id = em.entity_id;
 

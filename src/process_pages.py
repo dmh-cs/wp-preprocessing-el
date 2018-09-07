@@ -93,7 +93,8 @@ def _sentence_to_link_contexts(redirects_lookup, page, sentence):
           context = {'text': link_text,
                      'sentence': sentence['text'],
                      'offset': mention_offset,
-                     'page_title': page_title}
+                     'page_title': page_title,
+                     'preredirect': _.upper_first(link['page'])}
           if entity in contexts:
             contexts[entity].append(context)
           else:
@@ -137,7 +138,8 @@ def _apply_match_heuristic(page, link_contexts, to_match, entity):
   mentions = _.flatten(link_contexts.values())
   link_context = {entity: [{'text': to_match,
                             'offset': match_index,
-                            'page_title': page['title']} for match_index in matches]}
+                            'page_title': page['title'],
+                            'preredirect': _.upper_first(entity)} for match_index in matches]}
   filtered_link_context = {entity: [mention for mention in link_context[entity] if not _mention_overlaps(mentions, mention)]}
   concat = lambda dest, src: _.uniq_by(dest + src, 'offset') if dest else src
   if not _.is_empty(filtered_link_context[entity]):

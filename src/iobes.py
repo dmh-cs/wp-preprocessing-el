@@ -50,7 +50,7 @@ span multiple sentences are merged'''
       result.append(sentence)
   return result
 
-def get_page_iobes(page, mentions, mention_link_titles):
+def get_page_iobes(page, mentions, mention_link_titles, mention_link_titles_preredirect=None):
   """Returns a list of triples/pairs describing the iobes of the page
 based on `mentions` and `mention_link_titles`. ASSUMES `mentions` and
 `mention_link_titles` are in the same order. An element is a pair if
@@ -88,7 +88,15 @@ the token is not part of a mention, and is a triple otherwise.
       if iobes == 'O':
         sentence_iobes.append([current_token, iobes])
       else:
-        sentence_iobes.append([current_token, u.escape_title(mention_link_titles[link_title_ctr]), iobes])
+        if mention_link_titles_preredirect:
+          sentence_iobes.append([current_token,
+                                 u.escape_title(mention_link_titles_preredirect[link_title_ctr]),
+                                 u.escape_title(mention_link_titles[link_title_ctr]),
+                                 iobes])
+        else:
+          sentence_iobes.append([current_token,
+                                 u.escape_title(mention_link_titles[link_title_ctr]),
+                                 iobes])
         if iobes in ['S', 'E']:
           link_title_ctr += 1
     page_iobes.append(sentence_iobes)

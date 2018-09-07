@@ -10,7 +10,11 @@ def test__sentence_to_link_contexts():
           'sections': [{'sentences': [{'text': 'some text', 'links': [{'page': 'some text'}]}]}]}
   sentence = {'text': 'some text', 'links': [{'page': 'some text'}]}
   link_contexts = {'Some Words':
-                   [{'text': 'some text', 'offset': 0, 'page_title': 'My page', 'sentence': 'some text'}]}
+                   [{'text': 'some text',
+                     'offset': 0,
+                     'page_title': 'My page',
+                     'sentence': 'some text',
+                     'preredirect': 'Some text'}]}
   assert link_contexts == pp._sentence_to_link_contexts(redirects_lookup, page, sentence)
 
 def test__mention_overlaps():
@@ -67,7 +71,8 @@ def test_process_page_with_implicit_links():
                                              'Some': [{'text': 'some',
                                                        'sentence': 'some text',
                                                        'offset': 0,
-                                                       'page_title': 'My page'}]}
+                                                       'page_title': 'My page',
+                                                       'preredirect': 'Some'}]}
   assert processed_page['entity_counts'] == {'My page': 0,
                                              'Some': 1}
 
@@ -84,11 +89,13 @@ def test_process_page_with_overlapping_mentions():
   assert processed_page['link_contexts'] == {'Other': [{'text': 'some Other text',
                                                         'sentence': 'some Other text and my stuff',
                                                         'offset': 0,
-                                                        'page_title': 'Other'}],
+                                                        'page_title': 'Other',
+                                                        'preredirect': 'Other'}],
                                              'My page': [{'text': 'my',
                                                           'sentence': 'some Other text and my stuff',
                                                           'offset': 20,
-                                                          'page_title': 'Other'}]}
+                                                          'page_title': 'Other',
+                                                          'preredirect': 'My page'}]}
   assert processed_page['entity_counts'] == {'Other': 1,
                                              'My page': 1}
 

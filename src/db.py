@@ -27,10 +27,11 @@ def _get_category_id(cursor, category):
   return query_result['id'] if query_result else None
 
 def _insert_mention(cursor, mention, entity_id, page_id):
-  cursor.execute("INSERT INTO `mentions` (`text`, `offset`, `page_id`) VALUES (%s, %s, %s)",
+  cursor.execute("INSERT INTO `mentions` (`text`, `offset`, `page_id`, `preredirect`) VALUES (%s, %s, %s, %s)",
                  (mention['text'],
                   mention['offset'],
-                  page_id))
+                  page_id,
+                  mention['preredirect']))
   cursor.execute("INSERT INTO `entity_mentions` (`entity_id`, `mention_id`) VALUES (%s, LAST_INSERT_ID())",
                  (int(entity_id)))
 

@@ -1,114 +1,131 @@
 {
-    "Kaapstad": [
-        {
-            "text": "Kaapstad",
-            "sentence": "Die Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
-            "offset": 144,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Kaapstad",
-            "sentence": "aDie Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
-            "offset": 2095,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Kaapstad",
-            "offset": 1910,
-            "page_title": "Parade"
-        }
-    ],
-    "Fort de Goede Hoop": [
-        {
-            "text": "Fort de Goede Hoop",
-            "sentence": "In 1652 is 'n tydelike fort, Fort de Goede Hoop, op hierdie terrein opgerig.",
-            "offset": 321,
-            "page_title": "Parade"
-        }
-    ],
-    "Kasteel die Goeie Hoop": [
-        {
-            "text": "Kasteel",
-            "sentence": "Na voltooiing van die Kasteel is die fort in 1624 gesloop, die terrein vir gebruik as 'n paradegrond gelyk gemaak en rondom bome aangeplant.",
-            "offset": 391,
-            "page_title": "Parade"
-        }
-    ],
-    "Nelson Mandela": [
-        {
-            "text": "Nelson Mandela",
-            "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
-            "offset": 999,
-            "page_title": "Parade"
-        }
-    ],
-    "Suid-Afrika": [
-        {
-            "text": "Suid-Afrika",
-            "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek.",
-            "offset": 1194,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Suid-Afrika",
-            "offset": 1897,
-            "page_title": "Parade"
-        }
-    ],
-    "FIFA Sokker-Wêreldbekertoernooi in 2010": [
-        {
-            "text": "Wêreldbekersokkertoernooi",
-            "sentence": "In 2010 met die Wêreldbekersokkertoernooi was hier byeenkomste van ondersteuners wat die wedstryde op reuseskerms gevolg het.",
-            "offset": 1252,
-            "page_title": "Parade"
-        }
-    ],
-    "Koning Edward VII-standbeeld": [
-        {
-            "text": "Koning Edward VII-standbeeld",
-            "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
-            "offset": 1415,
-            "page_title": "Parade"
-        }
-    ],
-    "Tweede Vryheidsoorlog": [
-        {
-            "text": "Tweede Vryheidsoorlog",
-            "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
-            "offset": 1467,
-            "page_title": "Parade"
-        }
-    ],
-    "Parade": [
-        {
-            "text": "Parade",
-            "offset": 69,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Parade",
-            "offset": 80,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Parade",
-            "offset": 550,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Parade",
-            "offset": 840,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Parade",
-            "offset": 1216,
-            "page_title": "Parade"
-        },
-        {
-            "text": "Parade",
-            "offset": 2031,
-            "page_title": "Parade"
-        }
-    ]
+  "Parade": [
+    {
+      "text": "Parade",
+      "offset": 69,
+      "page_title": "Parade",
+      "preredirect": "Parade"
+    },
+    {
+      "text": "Parade",
+      "offset": 80,
+      "page_title": "Parade",
+      "preredirect": "Parade"
+    },
+    {
+      "text": "Parade",
+      "offset": 550,
+      "page_title": "Parade",
+      "preredirect": "Parade"
+    },
+    {
+      "text": "Parade",
+      "offset": 840,
+      "page_title": "Parade",
+      "preredirect": "Parade"
+    },
+    {
+      "text": "Parade",
+      "offset": 1216,
+      "page_title": "Parade",
+      "preredirect": "Parade"
+    },
+    {
+      "text": "Parade",
+      "offset": 2031,
+      "page_title": "Parade",
+      "preredirect": "Parade"
+    }
+  ],
+  "Kaapstad": [
+    {
+      "text": "Kaapstad",
+      "sentence": "Die Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
+      "offset": 144,
+      "page_title": "Parade",
+      "preredirect": "Kaapstad"
+    },
+    {
+      "text": "Kaapstad",
+      "sentence": "aDie Parade tussen Plein-, Buitenkant-, Darling- en Kasteelstraat in Kaapstad word as markplein, parkeerterrein en vir massabyeenkomste gebruik.",
+      "offset": 2095,
+      "page_title": "Parade",
+      "preredirect": "Kaapstad"
+    },
+    {
+      "text": "Kaapstad",
+      "offset": 1910,
+      "page_title": "Parade",
+      "preredirect": "Kaapstad"
+    }
+  ],
+  "Fort de Goede Hoop": [
+    {
+      "text": "Fort de Goede Hoop",
+      "sentence": "In 1652 is 'n tydelike fort, Fort de Goede Hoop, op hierdie terrein opgerig.",
+      "offset": 321,
+      "page_title": "Parade",
+      "preredirect": "Fort de Goede Hoop"
+    }
+  ],
+  "Kasteel die Goeie Hoop": [
+    {
+      "text": "Kasteel",
+      "sentence": "Na voltooiing van die Kasteel is die fort in 1624 gesloop, die terrein vir gebruik as 'n paradegrond gelyk gemaak en rondom bome aangeplant.",
+      "offset": 391,
+      "page_title": "Parade",
+      "preredirect": "Kasteel die Goeie Hoop"
+    }
+  ],
+  "Nelson Mandela": [
+    {
+      "text": "Nelson Mandela",
+      "sentence": "Nelson Mandela het na sy vrylating in 1990 sy volgelinge vanaf die trappies van die Stadsaal in Darlingstraat toegespreek.",
+      "offset": 999,
+      "page_title": "Parade",
+      "preredirect": "Nelson Mandela"
+    }
+  ],
+  "Suid-Afrika": [
+    {
+      "text": "Suid-Afrika",
+      "sentence": "En op 9 Mei 1994 na sy verkiesing tot president het hy ook die volk van Suid-Afrika vanaf die Parade toegespreek.",
+      "offset": 1194,
+      "page_title": "Parade",
+      "preredirect": "Suid-Afrika"
+    },
+    {
+      "text": "Suid-Afrika",
+      "offset": 1897,
+      "page_title": "Parade",
+      "preredirect": "Suid-Afrika"
+    }
+  ],
+  "FIFA Sokker-Wêreldbekertoernooi in 2010": [
+    {
+      "text": "Wêreldbekersokkertoernooi",
+      "sentence": "In 2010 met die Wêreldbekersokkertoernooi was hier byeenkomste van ondersteuners wat die wedstryde op reuseskerms gevolg het.",
+      "offset": 1252,
+      "page_title": "Parade",
+      "preredirect": "FIFA Sokker-Wêreldbekertoernooi in 2010"
+    }
+  ],
+  "Koning Edward VII-standbeeld": [
+    {
+      "text": "Koning Edward VII-standbeeld",
+      "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
+      "offset": 1415,
+      "page_title": "Parade",
+      "preredirect": "Koning Edward VII-standbeeld"
+    }
+  ],
+  "Tweede Vryheidsoorlog": [
+    {
+      "text": "Tweede Vryheidsoorlog",
+      "sentence": "Op hierdie grootste plein in die middestad staan die Koning Edward VII-standbeeld en 'n monument wat die Tweede Vryheidsoorlog herdenk.",
+      "offset": 1467,
+      "page_title": "Parade",
+      "preredirect": "Tweede Vryheidsoorlog"
+    }
+  ]
 }
