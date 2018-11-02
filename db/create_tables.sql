@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS mentions (
 `text` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
 `offset` INT NOT NULL,
 `page_id` bigint(20) NOT NULL,
-`preredirect` varchar(255) NOT NULL,
+`preredirect` varchar(255) CHARACTER SET utf8mb4 NOT NULL,
 
 PRIMARY KEY (`id`),
 INDEX (`text`),

@@ -135,7 +135,7 @@ def _mention_overlaps(mentions, mention_to_check):
 def _apply_match_heuristic(page, link_contexts, to_match, entity):
   '''helper for defining heuristics for finding mentions of an entity'''
   matches = u.match_all(to_match, page['plaintext'])
-  mentions = _.flatten(link_contexts.values())
+  mentions = sum(link_contexts.values(), [])
   link_context = {entity: [{'text': to_match,
                             'offset': match_index,
                             'page_title': page['title'],

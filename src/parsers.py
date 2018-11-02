@@ -36,4 +36,4 @@ def parse_for_tokens(sentence):
 
 def parse_text_for_tokens(text):
   sentences = parse_for_sentences(text)
-  return _.flatten([parse_for_tokens(sentence) for sentence in sentences])
+  return sum([parse_for_tokens(sentence) for sentence in sentences], [])

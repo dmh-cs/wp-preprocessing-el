@@ -61,6 +61,30 @@ def main():
                 lookups[property_name][row['mention']][entity_label] = 1
           else:
             lookups[property_name][row['mention']] = {entity_label: 1}
+      cursor.execute('select id, text from entities')
+      for row in cursor.fetchall():
+        if row['id'] not in lookups['entity_labels']: continue
+        entity_label = lookups['entity_labels'][row['id']]
+        if row['text'] not in lookups['entity_candidates_prior']:
+          lookups['entity_candidates_prior'][row['text']] = {}
+        if not _.has(lookups['entity_candidates_prior'],
+                     [row['text'], entity_label]):
+          if entity_label in lookups['entity_candidates_prior'][row['text']]:
+            lookups['entity_candidates_prior'][row['text']][entity_label] += 1
+          else:
+            lookups['entity_candidates_prior'][row['text']][entity_label] = 1
+      cursor.execute('select distinct preredirect, entity_id from mentions m join entity_mentions em on em.mention_id = m.id')
+      for row in cursor.fetchall():
+        if row['entity_id'] not in lookups['entity_labels']: continue
+        entity_label = lookups['entity_labels'][row['entity_id']]
+        if row['preredirect'] not in lookups['entity_candidates_prior']:
+          lookups['entity_candidates_prior'][row['preredirect']] = {}
+        if not _.has(lookups['entity_candidates_prior'],
+                     [row['preredirect'], entity_label]):
+          if entity_label in lookups['entity_candidates_prior'][row['preredirect']]:
+            lookups['entity_candidates_prior'][row['preredirect']][entity_label] += 1
+          else:
+            lookups['entity_candidates_prior'][row['preredirect']][entity_label] = 1
       with open('lookups.pkl', 'wb') as lookup_file:
         pickle.dump({'lookups': lookups, 'train_size': train_size}, lookup_file)
   finally:
