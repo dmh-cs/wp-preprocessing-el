@@ -31,12 +31,13 @@ def main():
   pages_db = db['pages']
   num_seed_pages = len(ids_to_fetch)
   print('Fetching WP pages using', num_seed_pages, 'seed pages')
-  initial_pages_to_fetch = list(pages_db.find({'_id': {'$in': ids_to_fetch}}))
+  # initial_pages_to_fetch = list(pages_db.find({'_id': {'$in': ids_to_fetch}}))
+  initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
   print('Building redirects lookup')
   redirects_lookup = get_redirects_lookup()
   print('Processing WP pages')
   processed_pages = process_seed_pages(pages_db, redirects_lookup, initial_pages_to_fetch, depth=1)
-
+  client.close()
   el_connection = pymysql.connect(host=DATABASE_HOST,
                                   user=DATABASE_USER,
                                   password=DATABASE_PASSWORD,
@@ -67,13 +68,22 @@ def main():
             continue
           insert_wp_page(el_cursor, processed_page, source)
           el_connection.commit()
-          insert_category_associations(el_cursor, processed_page, source)
-          el_connection.commit()
+          # insert_category_associations(el_cursor, processed_page, source)
+          # el_connection.commit()
           insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source)
           el_connection.commit()
   finally:
     el_connection.close()
     enwiki_connection.close()
 
+if __name__ == "__main__":
+  import ipdb
+  import traceback
+  import sys
 
-if __name__ == "__main__": main()
+  try:
+    main()
+  except: # pylint: disable=bare-except
+    extype, value, tb = sys.exc_info()
+    traceback.print_exc()
+    ipdb.post_mortem(tb)
