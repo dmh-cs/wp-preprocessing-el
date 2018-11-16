@@ -35,9 +35,14 @@ def get_outlinks(processed_pages):
   return set(link_names)
 
 def _process_pages(redirects_lookup, pages, is_seed_page=False, limit=10000):
-  return [process_page(redirects_lookup,
-                       page,
-                       is_seed_page=is_seed_page) for i, page in enumerate(pages) if is_valid_page(page) and i < limit]
+  processed = []
+  for i, page in enumerate(pages):
+    if i >= limit: break
+    if is_valid_page(page):
+      processed.append(process_page(redirects_lookup,
+                                    page,
+                                    is_seed_page=is_seed_page))
+  return processed
 
 def _fetch_pages(pages_db, page_titles):
   return [pages_db.find_one({'_id': title}) for title in page_titles]
