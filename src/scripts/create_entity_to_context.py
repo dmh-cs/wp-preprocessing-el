@@ -38,7 +38,7 @@ def main():
   redirects_lookup = get_redirects_lookup()
   print('Processing WP pages')
   batch_size = 10000
-  max_num_pages = 6e6
+  max_num_pages = int(6e6)
   for chunk in progressbar(range(0, max_num_pages, batch_size)):
     processed_pages = process_seed_pages(pages_db,
                                          redirects_lookup,
