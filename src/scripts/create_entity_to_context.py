@@ -68,8 +68,8 @@ def main():
             continue
           insert_wp_page(el_cursor, processed_page, source)
           el_connection.commit()
-          # insert_category_associations(el_cursor, processed_page, source)
-          # el_connection.commit()
+          insert_category_associations(el_cursor, processed_page, source)
+          el_connection.commit()
           insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source)
           el_connection.commit()
   finally:
