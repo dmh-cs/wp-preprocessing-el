@@ -33,7 +33,7 @@ def main():
   print('Fetching WP pages using', num_seed_pages, 'seed pages')
   # initial_pages_to_fetch = list(pages_db.find({'_id': {'$in': ids_to_fetch}}))
   # initial_pages_to_fetch = list(pages_db.aggregate([{'$sample': {'size': num_seed_pages}}]))
-  initial_pages_to_fetch = pages_db.find()
+  initial_pages_to_fetch = pages_db.find(no_cursor_timeout=True)
   print('Building redirects lookup')
   redirects_lookup = get_redirects_lookup()
   print('Processing WP pages')
