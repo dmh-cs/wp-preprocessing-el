@@ -39,15 +39,12 @@ def main():
   print('Processing WP pages')
   batch_size = 10000
   max_num_pages = 6e6
-  i = 0
-  while i * batch_size < max_num_pages:
-    i += 1
+  for chunk in progressbar(range(0, max_num_pages, batch_size)):
     processed_pages = process_seed_pages(pages_db,
                                          redirects_lookup,
                                          initial_pages_to_fetch,
                                          depth=0,
                                          limit=batch_size)
-    client.close()
     el_connection = pymysql.connect(host=DATABASE_HOST,
                                     user=DATABASE_USER,
                                     password=DATABASE_PASSWORD,
