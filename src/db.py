@@ -47,13 +47,17 @@ def _insert_page_category(cursor, page_id, category_id, options):
     cursor.execute("INSERT INTO `page_categories` (`category_id`, `page_id`) VALUES (%s, %s)",
                    (category_id, page_id))
 
-def get_page_ids_with_mentions(cursor):
-  cursor.execute("SELECT DISTINCT `page_id` from mentions")
-  return [row['page_id'] for row in cursor.fetchall()]
+def in_batches(cursor, query, buff_len=10000):
+  offset = 0
+  while True:
+    to_exec = query + f' LIMIT {offset}, {buff_len}'
+    cursor.execute(to_exec)
+    results = cursor.fetchall()
+    if not results: return
+    for result in results: yield result
 
-def get_nondisambiguation_pages_having_mentions(cursor):
-  cursor.execute("SELECT * FROM pages WHERE id IN (SELECT DISTINCT page_id FROM mentions) AND is_disambiguation_page = 0")
-  return build_cursor_generator(cursor), cursor.rowcount
+def get_nondisambiguation_pages(cursor):
+  return in_batches(cursor, "SELECT * FROM pages WHERE is_disambiguation_page = 0")
 
 def get_page_mentions(cursor, page_id):
   cursor.execute("SELECT * from mentions WHERE page_id = (%s) ORDER BY offset", (page_id))

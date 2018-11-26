@@ -7,7 +7,7 @@ from progressbar import progressbar
 import sys
 sys.path.append('./src')
 
-from db import get_page_mentions_by_entity, get_nondisambiguation_pages_having_mentions, get_page_titles
+from db import get_page_mentions_by_entity, get_nondisambiguation_pages, get_page_titles
 from iobes import get_page_iobes, write_page_iobes
 
 
@@ -33,10 +33,11 @@ def main():
         mentions_cursor.execute("SET NAMES utf8mb4;")
         mentions_cursor.execute("SET CHARACTER SET utf8mb4;")
         mentions_cursor.execute("SET character_set_connection=utf8mb4;")
-        pages, page_count = get_nondisambiguation_pages_having_mentions(pages_cursor)
-        for page in progressbar(pages, max_value=page_count):
+        pages = get_nondisambiguation_pages(pages_cursor)
+        for page in progressbar(pages):
           page_id = page['id']
           sorted_mentions = get_page_mentions_by_entity(mentions_cursor, page_id)
+          if len(sorted_mentions) == 0: continue
           mention_link_titles = _.pluck(sorted_mentions, 'entity')
           mention_link_titles_preredirect = _.pluck(sorted_mentions, 'preredirect')
           page_iobes = get_page_iobes(page,
