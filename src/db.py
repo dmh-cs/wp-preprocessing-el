@@ -54,7 +54,9 @@ def in_batches(cursor, query, buff_len=10000):
     cursor.execute(to_exec)
     results = cursor.fetchall()
     if not results: return
-    for result in results: yield result
+    for result in results:
+      yield result
+      offset += buff_len
 
 def get_nondisambiguation_pages(cursor):
   return in_batches(cursor, "SELECT * FROM pages WHERE is_disambiguation_page = 0")
