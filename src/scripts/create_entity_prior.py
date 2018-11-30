@@ -61,7 +61,7 @@ def main():
                 lookups[property_name][row['mention']][entity_label] = 1
           else:
             lookups[property_name][row['mention']] = {entity_label: 1}
-      cursor.execute('select entity_id, entity from entity_mentions_text')
+      cursor.execute('select distinct entity_id, entity from entity_mentions_text')
       for row in cursor.fetchall():
         if row['entity_id'] not in lookups['entity_labels']: continue
         entity_label = lookups['entity_labels'][row['entity_id']]
