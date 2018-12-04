@@ -8,7 +8,7 @@ num_files = 0
 for fh in os.listdir(directory):
   if ctr == 10000:
     current_fh.close()
-    current_fh = open(f'out{num_files}', 'wb')
+    current_fh = open(f'out{num_files}', 'w+')
     num_files += 1
   current_fh.write('\n----------.----------\n')
   current_fh.write(fh.read())
