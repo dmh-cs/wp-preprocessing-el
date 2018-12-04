@@ -11,7 +11,7 @@ for f in os.listdir(directory):
     current_fh = open(f'out{num_files}', 'a+')
     num_files += 1
   current_fh.write('\n----------.----------\n')
-  with open(str(f), 'r') as fh:
+  with open(f.decode("utf-8"), 'r') as fh:
     current_fh.write(fh.read())
   ctr += 1
 current_fh.close()
