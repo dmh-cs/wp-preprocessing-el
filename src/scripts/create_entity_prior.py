@@ -58,7 +58,7 @@ def main():
         entity_label = entity_labels[row['entity_id']]
         candidates_prior[row['preredirect']][entity_label] += 1
       with open('lookups.pkl', 'wb') as lookup_file:
-        pickle.dump({'lookups': {'entity_candidates_prior': candidates_prior,
+        pickle.dump({'lookups': {'entity_candidates_prior': _.map_values(dict(candidates_prior), dict),
                                  'entity_labels': entity_labels},
                      'train_size': train_size},
                     lookup_file)
