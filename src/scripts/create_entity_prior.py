@@ -49,7 +49,7 @@ def main():
         if row['entity_id'] not in entity_labels:
           entity_labels[row['entity_id']] = len(entity_labels)
         entity_label = entity_labels[row['entity_id']]
-        candidates_prior[row['mention']][entity_label] += 1
+        candidates_prior[row['entity']][entity_label] += 1
 
       cursor.execute('select distinct preredirect, entity_id from mentions m join entity_mentions em on em.mention_id = m.id')
       for row in cursor.fetchall():
