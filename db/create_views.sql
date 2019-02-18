@@ -14,6 +14,7 @@ CREATE OR REPLACE VIEW category_by_page AS SELECT p.id AS page_id, c.category AS
 CREATE OR REPLACE VIEW entity_by_page AS
        SELECT e.id AS entity_id,
               p.id AS page_id,
+              p.source_id as source_id,
               e.text AS entity
        FROM entities e INNER JOIN pages p ON p.title = e.text;
 
