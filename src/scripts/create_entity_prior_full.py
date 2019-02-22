@@ -21,7 +21,7 @@ def main():
                                db=EL_DATABASE_NAME,
                                charset='utf8mb4',
                                use_unicode=True,
-                               cursorclass=pymysql.cursors.DictCursor)
+                               cursorclass=pymysql.cursors.SSDictCursor)
   try:
     with connection.cursor() as cursor:
       cursor.execute("SET NAMES utf8mb4;")
