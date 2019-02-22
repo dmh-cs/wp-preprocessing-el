@@ -30,21 +30,21 @@ def main():
       cursor.execute('select mention, entity_id from entity_mentions_text')
       candidates_prior = defaultdict(lambda: defaultdict(int))
       entity_labels = {}
-      for row in progressbar(cursor.fetchall()):
+      for row in progressbar(cursor):
         if row['entity_id'] not in entity_labels:
           entity_labels[row['entity_id']] = len(entity_labels)
         entity_label = entity_labels[row['entity_id']]
         candidates_prior[row['mention']][entity_label] += 1
 
       cursor.execute('select distinct entity_id, entity from entity_mentions_text')
-      for row in progressbar(cursor.fetchall()):
+      for row in progressbar(cursor):
         if row['entity_id'] not in entity_labels:
           entity_labels[row['entity_id']] = len(entity_labels)
         entity_label = entity_labels[row['entity_id']]
         candidates_prior[row['entity']][entity_label] += 1
 
       cursor.execute('select distinct preredirect, entity_id from mentions m join entity_mentions em on em.mention_id = m.id')
-      for row in progressbar(cursor.fetchall()):
+      for row in progressbar(cursor):
         if row['entity_id'] not in entity_labels:
           entity_labels[row['entity_id']] = len(entity_labels)
         entity_label = entity_labels[row['entity_id']]
