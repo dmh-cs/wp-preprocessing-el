@@ -27,14 +27,14 @@ def main():
       cursor.execute("SET NAMES utf8mb4;")
       cursor.execute("SET CHARACTER SET utf8mb4;")
       cursor.execute("SET character_set_connection=utf8mb4;")
-      cursor.execute('select mention, entity_id, count(*) as c from entity_mentions_text group by mention, entity_id')
+      cursor.execute('select mention, entity_id from entity_mentions_text')
       candidates_prior = defaultdict(lambda: defaultdict(int))
       entity_labels = {}
       for row in progressbar(cursor.fetchall()):
         if row['entity_id'] not in entity_labels:
           entity_labels[row['entity_id']] = len(entity_labels)
         entity_label = entity_labels[row['entity_id']]
-        candidates_prior[row['mention']][entity_label] += row['c']
+        candidates_prior[row['mention']][entity_label] += 1
 
       cursor.execute('select distinct entity_id, entity from entity_mentions_text')
       for row in progressbar(cursor.fetchall()):
