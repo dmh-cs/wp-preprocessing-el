@@ -38,6 +38,7 @@ ON UPDATE CASCADE ON DELETE CASCADE
 CREATE TABLE IF NOT EXISTS entities (
 `id` bigint(20) NOT NULL auto_increment,
 `text` varchar(255) CHARACTER SET utf8mb4 NOT NULL UNIQUE,
+`num_mentions` bigint(20) NOT NULL,
 PRIMARY KEY  (`id`),
 INDEX (`text`)
 );
