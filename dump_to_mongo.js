@@ -10,7 +10,6 @@ dumpster({file: dump_path,
           skip_disambig: false,
           custom: function(doc) {
 	      return {
-		  _id: doc.title(),
 		  title: doc.title(),
 		  categories: doc.categories(),
                   isDisambiguation: doc.isDisambiguation(),
