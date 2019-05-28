@@ -27,7 +27,6 @@ def main():
       cursor.execute("SET NAMES utf8mb4;")
       cursor.execute("SET CHARACTER SET utf8mb4;")
       cursor.execute("SET character_set_connection=utf8mb4;")
-      cursor.execute('alter table entities add num_mentions bigint(20) NOT NULL DEFAULT 0')
       cursor.execute('update entities set num_mentions = (select count(entity_id) as c from mentions m join entity_mentions em on m.id = em.mention_id where em.entity_id = entities.id group by em.entity_id)')
   finally:
     connection.close()
