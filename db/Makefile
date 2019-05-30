@@ -7,7 +7,7 @@ up:
 	@echo '-- Creating database `$(EL_DBNAME)` --'
 	@echo '-------------------'
 	@echo ''
-mysql --port 3306 -p"$(DBPASS)" -u"$(DBUSER)" --host "$(DBHOST)" -e "CREATE DATABASE IF NOT EXISTS $(EL_DBNAME) CHARACTER SET utf8mb4 COLLATE utf8mb4_general"
+	mysql --port 3306 -p"$(DBPASS)" -u"$(DBUSER)" --host "$(DBHOST)" -e "CREATE DATABASE IF NOT EXISTS $(EL_DBNAME) CHARACTER SET utf8mb4 COLLATE utf8mb4_general"
 
 	@echo ''
 	@echo '-------------------'
