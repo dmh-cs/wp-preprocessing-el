@@ -31,7 +31,7 @@ class Inserter():
 
   def insert_entity(self, entity):
     if entity not in self.entity_id_lookup:
-      entity_id = len(self.entity_id_lookup)
+      entity_id = len(self.entity_id_lookup) + 1
       self.entity_insert_buffer.append((entity_id, entity))
       self.entity_id_lookup[entity] = entity_id
       if len(self.entity_insert_buffer) == 1000:
@@ -41,7 +41,7 @@ class Inserter():
     return entity_id
 
   def insert_mention(self, mention, entity_id, page_id):
-    mention_id = self.num_mentions
+    mention_id = self.num_mentions + 1
     self.mention_insert_buffer.append((mention_id,
                                        mention['text'],
                                        mention['offset'],
