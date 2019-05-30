@@ -1,4 +1,5 @@
 import pydash as _
+from unidecode import unidecode
 from utils import build_cursor_generator
 
 def entity_has_page(enwiki_cursor, entity):
@@ -30,10 +31,10 @@ class Inserter():
     self.assoc_insert_buffer = []
 
   def insert_entity(self, entity):
-    if entity not in self.entity_id_lookup:
+    if unidecode(entity).lower() not in self.entity_id_lookup:
       entity_id = len(self.entity_id_lookup) + 1
-      self.entity_insert_buffer.append((entity_id, entity))
-      self.entity_id_lookup[entity] = entity_id
+      self.entity_insert_buffer.append((entity_id, unidecode(entity).lower()))
+      self.entity_id_lookup[unidecode(entity).lower()] = entity_id
       if len(self.entity_insert_buffer) == 1000:
         self._bulk_insert_entities()
     else:
