@@ -38,7 +38,7 @@ class Inserter():
       if len(self.entity_insert_buffer) == 1000:
         self._bulk_insert_entities()
     else:
-      entity_id = self.entity_id_lookup[entity]
+      entity_id = self.entity_id_lookup[unidecode(entity).lower()]
     return entity_id
 
   def insert_mention(self, mention, entity_id, page_id):
