@@ -8,7 +8,7 @@ import json
 import sys
 sys.path.append('./src')
 
-from db import insert_wp_page, insert_category_associations, insert_link_contexts, entity_has_page
+from db import insert_wp_page, insert_category_associations, insert_link_contexts, entity_has_page, Inserter
 from process_pages import process_seed_pages
 from lookups import get_redirects_lookup
 
@@ -64,6 +64,7 @@ def main():
         el_cursor.execute("SET NAMES utf8mb4;")
         el_cursor.execute("SET CHARACTER SET utf8mb4;")
         el_cursor.execute("SET character_set_connection=utf8mb4;")
+        inserter = Inserter(el_cursor)
         with enwiki_connection.cursor() as enwiki_cursor:
           enwiki_cursor.execute("SET NAMES utf8mb4;")
           enwiki_cursor.execute("SET CHARACTER SET utf8mb4;")
@@ -77,7 +78,7 @@ def main():
             el_connection.commit()
             insert_category_associations(el_cursor, processed_page, source)
             el_connection.commit()
-            insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source)
+            insert_link_contexts(enwiki_cursor, el_cursor, inserter, processed_page, source)
             el_connection.commit()
     finally:
       el_connection.close()
