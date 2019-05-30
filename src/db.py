@@ -2,10 +2,12 @@ import pydash as _
 from unidecode import unidecode
 from utils import build_cursor_generator
 
-def entity_has_page(enwiki_cursor, entity):
-  enwiki_cursor.execute("SELECT 1 FROM page WHERE page_title = %s AND page_is_redirect = 0 and page_namespace = 0",
-                        entity.replace(' ', '_'))
-  return enwiki_cursor.fetchone()
+def entity_has_page(wiki_titles, entity):
+  return unidecode(entity).lower() in wiki_titles
+
+def get_wiki_titles(enwiki_cursor):
+  enwiki_cursor.execute("SELECT page_title FROM page WHERE page_is_redirect = 0 and page_namespace = 0")
+  return set(unidecode(row['page_title'].replace('_', ' ')).lower() for row in enwiki_cursor.fetchall())
 
 class Inserter():
   def __init__(self, cursor):
@@ -124,11 +126,11 @@ def insert_wp_page(cursor, processed_page, source):
                   processed_page['document_info']['is_seed_page'],
                   processed_page['document_info']['is_disambiguation_page']))
 
-def insert_link_contexts(enwiki_cursor, el_cursor, inserter, processed_page, source):
+def insert_link_contexts(wiki_titles, el_cursor, inserter, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']
   page_id = _get_page_id_from_source_id(el_cursor, source, source_page_id)
   for entity, mentions in processed_page['link_contexts'].items():
-    if entity_has_page(enwiki_cursor, entity):
+    if entity_has_page(wiki_titles, entity):
       entity_id = inserter.insert_entity(entity)
       for mention in mentions:
         inserter.insert_mention(mention, entity_id, page_id)

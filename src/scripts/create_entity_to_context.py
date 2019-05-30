@@ -8,7 +8,7 @@ import json
 import sys
 sys.path.append('./src')
 
-from db import insert_wp_page, insert_category_associations, insert_link_contexts, entity_has_page, Inserter
+from db import insert_wp_page, insert_category_associations, insert_link_contexts, entity_has_page, Inserter, get_wiki_titles
 from process_pages import process_seed_pages
 from lookups import get_redirects_lookup
 
@@ -53,7 +53,7 @@ def main():
                                         db=ENWIKI_DATABASE_NAME,
                                         charset='utf8mb4',
                                         use_unicode=True,
-                                        cursorclass=pymysql.cursors.DictCursor)
+                                        cursorclass=pymysql.cursors.SSDictCursor)
     with el_connection.cursor() as el_cursor:
       el_cursor.execute("SET NAMES utf8mb4;")
       el_cursor.execute("SET CHARACTER SET utf8mb4;")
@@ -63,23 +63,24 @@ def main():
         enwiki_cursor.execute("SET NAMES utf8mb4;")
         enwiki_cursor.execute("SET CHARACTER SET utf8mb4;")
         enwiki_cursor.execute("SET character_set_connection=utf8mb4;")
-        for chunk in progressbar(range(0, max_num_pages, batch_size)):
-          processed_pages = process_seed_pages(pages_db,
-                                               redirects_lookup,
-                                               initial_pages_to_fetch,
-                                               depth=0,
-                                               limit=batch_size)
-          print('Inserting processed pages')
-          source = 'wikipedia'
-          for processed_page in progressbar(processed_pages):
-            if not entity_has_page(enwiki_cursor, processed_page['document_info']['title']):
-              continue
-            insert_wp_page(el_cursor, processed_page, source)
-            el_connection.commit()
-            insert_category_associations(el_cursor, processed_page, source)
-            el_connection.commit()
-            insert_link_contexts(enwiki_cursor, el_cursor, inserter, processed_page, source)
-            el_connection.commit()
+        print('getting wiki titles')
+        wiki_titles = get_wiki_titles(enwiki_cursor)
+        print('done getting wiki titles')
+      for chunk in progressbar(range(0, max_num_pages, batch_size)):
+        processed_pages = process_seed_pages(pages_db,
+                                             redirects_lookup,
+                                             initial_pages_to_fetch,
+                                             depth=0,
+                                             limit=batch_size)
+        print('Inserting processed pages')
+        source = 'wikipedia'
+        for processed_page in progressbar(processed_pages):
+          if not entity_has_page(wiki_titles, processed_page['document_info']['title']):
+            continue
+          insert_wp_page(el_cursor, processed_page, source)
+          el_connection.commit()
+          insert_link_contexts(wiki_titles, el_cursor, inserter, processed_page, source)
+          el_connection.commit()
   finally:
     el_connection.close()
     enwiki_connection.close()
