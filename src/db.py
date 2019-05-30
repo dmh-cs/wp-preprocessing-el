@@ -6,11 +6,50 @@ def entity_has_page(enwiki_cursor, entity):
                         entity.replace(' ', '_'))
   return enwiki_cursor.fetchone()
 
-def _insert_entity(cursor, entity):
-  cursor.execute("INSERT INTO `entities` (`text`) VALUES (%s) ON DUPLICATE KEY UPDATE id=id",
-                 (entity))
-  cursor.execute("SELECT id from entities where text = (%s)", (entity))
-  return cursor.fetchone()['id']
+class Inserter():
+  def __init__(self, cursor):
+    self.cursor = cursor
+    self.entity_id_lookup = {}
+    self.entity_insert_buffer = []
+    self.mention_insert_buffer = []
+    self.assoc_insert_buffer = []
+    self.num_mentions = 0
+
+  def _bulk_insert_entities(self):
+    values = str(self.entity_insert_buffer)[1:-1]
+    self.cursor.execute('insert into entities (id, text) values ' + values)
+    self.entity_insert_buffer = []
+
+  def _bulk_insert_mentions(self):
+    values = str(self.mention_insert_buffer)[1:-1]
+    assoc_values = str(self.assoc_insert_buffer)[1:-1]
+    self.cursor.execute('insert into mentions (id, text, offset, page_id, preredirect) values ' + values)
+    self.cursor.execute('insert into entity_mentions (entity_id, mention_id) values ' + assoc_values)
+    self.mention_insert_buffer = []
+    self.assoc_insert_buffer = []
+
+  def insert_entity(self, entity):
+    if entity not in self.entity_id_lookup:
+      entity_id = len(self.entity_id_lookup)
+      self.entity_insert_buffer.append((entity_id, entity))
+      self.entity_id_lookup[entity] = entity_id
+      if len(self.entity_insert_buffer) == 1000:
+        self._bulk_insert_entities()
+    else:
+      entity_id = self.entity_id_lookup[entity]
+    return entity_id
+
+  def insert_mention(self, mention, entity_id, page_id):
+    mention_id = self.num_mentions
+    self.mention_insert_buffer.append((mention_id,
+                                       mention['text'],
+                                       mention['offset'],
+                                       page_id,
+                                       mention['preredirect']))
+    self.assoc_insert_buffer.append((int(entity_id), mention_id))
+    if len(self.mention_insert_buffer) == 1000:
+      self._bulk_insert_mentions()
+    self.num_mentions += 1
 
 def _get_page_id_from_source_id(cursor, source, source_page_id):
   cursor.execute("SELECT `id` FROM `pages` WHERE source_id = %s AND source = %s",
@@ -25,15 +64,6 @@ def _get_category_id(cursor, category):
   cursor.execute("SELECT `id` FROM `categories` WHERE category = %s", (category))
   query_result = cursor.fetchone()
   return query_result['id'] if query_result else None
-
-def _insert_mention(cursor, mention, entity_id, page_id):
-  cursor.execute("INSERT INTO `mentions` (`text`, `offset`, `page_id`, `preredirect`) VALUES (%s, %s, %s, %s)",
-                 (mention['text'],
-                  mention['offset'],
-                  page_id,
-                  mention['preredirect']))
-  cursor.execute("INSERT INTO `entity_mentions` (`entity_id`, `mention_id`) VALUES (%s, LAST_INSERT_ID())",
-                 (int(entity_id)))
 
 def _insert_category(cursor, category):
   cursor.execute("INSERT INTO `categories` (`category`) VALUES (%s) ON DUPLICATE KEY UPDATE id=id",
@@ -92,14 +122,14 @@ def insert_wp_page(cursor, processed_page, source):
                   processed_page['document_info']['is_seed_page'],
                   processed_page['document_info']['is_disambiguation_page']))
 
-def insert_link_contexts(enwiki_cursor, el_cursor, processed_page, source):
+def insert_link_contexts(enwiki_cursor, el_cursor, inserter, processed_page, source):
   source_page_id = processed_page['document_info']['source_id']
   page_id = _get_page_id_from_source_id(el_cursor, source, source_page_id)
   for entity, mentions in processed_page['link_contexts'].items():
     if entity_has_page(enwiki_cursor, entity):
-      entity_id = _insert_entity(el_cursor, entity)
+      entity_id = inserter.insert_entity(entity)
       for mention in mentions:
-        _insert_mention(el_cursor, mention, entity_id, page_id)
+        inserter.insert_mention(mention, entity_id, page_id)
     else:
       continue
 
