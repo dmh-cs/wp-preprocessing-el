@@ -23,6 +23,7 @@ class Inserter():
   def _bulk_insert_mentions(self):
     values = str(self.mention_insert_buffer)[1:-1]
     assoc_values = str(self.assoc_insert_buffer)[1:-1]
+    if len(self.entity_insert_buffer) != 0: self._bulk_insert_entities()
     self.cursor.execute('insert into mentions (id, text, offset, page_id, preredirect) values ' + values)
     self.cursor.execute('insert into entity_mentions (entity_id, mention_id) values ' + assoc_values)
     self.mention_insert_buffer = []

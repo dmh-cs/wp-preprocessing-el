@@ -51,8 +51,7 @@ def main():
                                     db=EL_DATABASE_NAME,
                                     charset='utf8mb4',
                                     use_unicode=True,
-                                    cursorclass=pymysql.cursors.DictCursor,
-                                    autocommit=True)
+                                    cursorclass=pymysql.cursors.DictCursor)
     enwiki_connection = pymysql.connect(host=DATABASE_HOST,
                                         user=DATABASE_USER,
                                         password=DATABASE_PASSWORD,
