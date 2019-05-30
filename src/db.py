@@ -9,6 +9,9 @@ def get_wiki_titles(enwiki_cursor):
   enwiki_cursor.execute("SELECT page_title FROM page WHERE page_is_redirect = 0 and page_namespace = 0")
   return set(unidecode(row['page_title'].replace('_', ' ')).lower() for row in enwiki_cursor.fetchall())
 
+def clean_entity(entity):
+  return unidecode(entity).lower().strip()
+
 class Inserter():
   def __init__(self, cursor):
     self.cursor = cursor
@@ -33,14 +36,14 @@ class Inserter():
     self.assoc_insert_buffer = []
 
   def insert_entity(self, entity):
-    if unidecode(entity).lower() not in self.entity_id_lookup:
+    if clean_entity(entity) not in self.entity_id_lookup:
       entity_id = len(self.entity_id_lookup) + 1
-      self.entity_insert_buffer.append((entity_id, unidecode(entity).lower()))
-      self.entity_id_lookup[unidecode(entity).lower()] = entity_id
+      self.entity_insert_buffer.append((entity_id, clean_entity(entity)))
+      self.entity_id_lookup[clean_entity(entity)] = entity_id
       if len(self.entity_insert_buffer) == 1000:
         self._bulk_insert_entities()
     else:
-      entity_id = self.entity_id_lookup[unidecode(entity).lower()]
+      entity_id = self.entity_id_lookup[clean_entity(entity)]
     return entity_id
 
   def insert_mention(self, mention, entity_id, page_id):
