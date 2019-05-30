@@ -39,12 +39,7 @@ def main():
   print('Processing WP pages')
   batch_size = 10000
   max_num_pages = int(6e6)
-  for chunk in progressbar(range(0, max_num_pages, batch_size)):
-    processed_pages = process_seed_pages(pages_db,
-                                         redirects_lookup,
-                                         initial_pages_to_fetch,
-                                         depth=0,
-                                         limit=batch_size)
+  try:
     el_connection = pymysql.connect(host=DATABASE_HOST,
                                     user=DATABASE_USER,
                                     password=DATABASE_PASSWORD,
@@ -59,16 +54,21 @@ def main():
                                         charset='utf8mb4',
                                         use_unicode=True,
                                         cursorclass=pymysql.cursors.DictCursor)
-    try:
-      with el_connection.cursor() as el_cursor:
-        el_cursor.execute("SET NAMES utf8mb4;")
-        el_cursor.execute("SET CHARACTER SET utf8mb4;")
-        el_cursor.execute("SET character_set_connection=utf8mb4;")
-        inserter = Inserter(el_cursor)
-        with enwiki_connection.cursor() as enwiki_cursor:
-          enwiki_cursor.execute("SET NAMES utf8mb4;")
-          enwiki_cursor.execute("SET CHARACTER SET utf8mb4;")
-          enwiki_cursor.execute("SET character_set_connection=utf8mb4;")
+    with el_connection.cursor() as el_cursor:
+      el_cursor.execute("SET NAMES utf8mb4;")
+      el_cursor.execute("SET CHARACTER SET utf8mb4;")
+      el_cursor.execute("SET character_set_connection=utf8mb4;")
+      inserter = Inserter(el_cursor)
+      with enwiki_connection.cursor() as enwiki_cursor:
+        enwiki_cursor.execute("SET NAMES utf8mb4;")
+        enwiki_cursor.execute("SET CHARACTER SET utf8mb4;")
+        enwiki_cursor.execute("SET character_set_connection=utf8mb4;")
+        for chunk in progressbar(range(0, max_num_pages, batch_size)):
+          processed_pages = process_seed_pages(pages_db,
+                                               redirects_lookup,
+                                               initial_pages_to_fetch,
+                                               depth=0,
+                                               limit=batch_size)
           print('Inserting processed pages')
           source = 'wikipedia'
           for processed_page in progressbar(processed_pages):
@@ -80,9 +80,9 @@ def main():
             el_connection.commit()
             insert_link_contexts(enwiki_cursor, el_cursor, inserter, processed_page, source)
             el_connection.commit()
-    finally:
-      el_connection.close()
-      enwiki_connection.close()
+  finally:
+    el_connection.close()
+    enwiki_connection.close()
 
 if __name__ == "__main__":
   import ipdb
