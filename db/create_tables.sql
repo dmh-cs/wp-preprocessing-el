@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS pages (
 `is_disambiguation_page` boolean NOT NULL,
 PRIMARY KEY (`id`),
 INDEX (`source_id`),
+INDEX (`title`),
 UNIQUE KEY (`source`, `source_id`)
 );
 
