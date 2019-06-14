@@ -47,4 +47,27 @@ down:
 	@echo ''
 	mysql --port 3306 -p"$(DBPASS)" -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" < drop_views.sql
 
+	@echo ''
+	@echo '-------------------'
+	@echo '-- Dropping materialized views --'
+	@echo '-------------------'
+	@echo ''
+	mysql --port 3306 -p"$(DBPASS)" -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" < drop_materialized_views.sql
+
+drop_materialized:
+	@echo ''
+	@echo '-------------------'
+	@echo '-- Dropping materialized views --'
+	@echo '-------------------'
+	@echo ''
+	mysql --port 3306 -p"$(DBPASS)" -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" < drop_materialized_views.sql
+
+materialize:
+	@echo ''
+	@echo '-------------------'
+	@echo '-- Creating materialized views --'
+	@echo '-------------------'
+	@echo ''
+	mysql --port 3306 -p"$(DBPASS)" -u"$(DBUSER)" --host "$(DBHOST)" "$(EL_DBNAME)" < create_materialized_views.sql
+
 .PHONY: help el
