@@ -5,4 +5,5 @@ CREATE TABLE entity_mentions_text_tbl AS
               page_id,
               entity,
               entity_id
-       FROM entity_mentions_text;
+       FROM entity_mentions_text
+       ORDER BY page_id;
